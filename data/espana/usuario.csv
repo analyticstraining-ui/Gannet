@@ -1,0 +1,382 @@
+clave,codigo_externo,fecha_alta,nombre,correo_e,nivel,activo,telefono,extension,area,puesto,departamento,dia_cumple,mes_cumple,curp,rfc,imss,domicilio_particular,colonia_particular,telefono_particular,celular_particular,notas,balance_concentrado,rangos_incentivos,tabla_incentivos,pct_comision,colapsar_filtros,ultimo_acceso,ultimas_reservas,ultimos_grupos,metodo_2fa,ga_token,ga_verificado,bitacora
+6127,,2026-01-09,"Adelaida Borg",adelaida@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",,,,,,,,,+33670957104,,0,A,,0.00,1,2026-01-09,,,C,,0,"09/01/2026 08:32 USR: CarlosR - Usuario agregado
+"
+5889,,2025-10-02,"Alejandra Llantada",alejandra@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",07,05,,,,,,,+34609951547,,0,A,,0.00,1,2026-02-09,"67,55,53,87,58",,C,OL5IUMUE8EUOXs2CgG4kGrIfB/0vOCvD:zmqpO3TlOA1XHYIo7WDNt0wGBsuGLNUeBrRqgdFJ5Do=,1,"02/10/2025 20:55 USR: AriadnaR - Usuario agregado
+30/12/2025 09:50 USR: AriadnaR - Usuario modificado. 
+31/12/2025 07:42 USR: CarlosR - Usuario modificado. 
+"
+5785,,2025-09-04,"Alicia Lopez-Tejero",alicia@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",21,06,,,,,,,1234567890,,0,A,,0.00,1,2025-10-06,50,,C,,0,"04/09/2025 21:47 USR: AriadnaR - Usuario agregado
+"
+5784,,2025-09-04,"Almudena Gonzalez",almudena@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",04,12,,,,,,,1234567890,,0,A,,0.00,1,2026-02-12,"97,103,93,45,73",,C,,0,"04/09/2025 21:38 USR: AriadnaR - Usuario agregado
+"
+5892,,2025-10-02,"Amaya Arnal",administracion@gannetworld.com,AG,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"02/10/2025 21:25 USR: AriadnaR - Usuario agregado
+"
+5595,,2025-06-23,"Ana Teresa Quintero",ana@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",07,02,,,,,,,1234567890,,0,A,,0.00,1,2026-02-11,"36,98,39,63",,C,,0,"23/06/2025 23:51 USR: AriadnaR - Usuario agregado
+23/06/2025 23:52 USR: AriadnaR - Usuario modificado. 
+"
+5379,,2025-04-02,"Andrea Garcia",andrea.garcia@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",15,12,,,,,,,1234567890,,0,A,,0.00,1,2026-02-09,"105,104,106,34,78",,C,,0,"024/04/2025 00:30 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+05/05/2025 09:13 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [ON]
+&emsp;Cerrar reservaciones [ON]
+&emsp;Consultar reporte de incentivos [ON]
+10/06/2025 08:24 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Eliminar Clientes [OFF]
+&emsp;Eliminar Empresas [OFF]
+&emsp;Agregar Proveedores [OFF]
+&emsp;Eliminar Proveedores [OFF]
+&emsp;Modificar reservaciones de otros usuarios [OFF]
+&emsp;Consultar reportes (de todos los usuarios) [OFF]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [OFF]
+&emsp;Exportar Directorios [OFF]
+&emsp;Cambiar vendedor de reservación y cotización [OFF]
+&emsp;Consultar reservaciones de otros usuarios [OFF]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [OFF]
+&emsp;Editar Proveedores [OFF]
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+19/06/2025 20:31 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Cancelar reservaciones [OFF]
+&emsp;Cancelar recibo de pago de cliente [OFF]
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Cerrar reservaciones [OFF]
+&emsp;Consultar reporte de incentivos [OFF]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+&emsp;Crear y editar datos de grupos [OFF]
+19/06/2025 20:33 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+"
+5362,,2025-03-27,"Ariadna Rodríguez",ariadna@gannetworld.com,AG,1,"55 40106060",,DIRECTOR,,,09,07,,,,,,,5540106060,,0,A,,0.00,1,2026-02-09,"59,98,105,86,95",,C,,0,0
+5626,,2025-07-11,"Blanca Osorio",blanca@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",25,12,,,,,,,"+34 626 97 78 98",,0,A,,0.00,1,2026-01-27,"42,27,76,66,53",,C,,0,"11/07/2025 09:24 USR: AriadnaR - Usuario agregado
+08/09/2025 20:52 USR: AriadnaR - Usuario modificado. 
+"
+5783,,2025-09-04,"Camila Navarro",camila@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",05,10,,,,,,,1234567890,,0,A,,0.00,1,2025-09-15,,,C,,0,"04/09/2025 21:33 USR: AriadnaR - Usuario agregado
+"
+6068,,2025-12-16,"Carlos Rodriguez",it@gannetworld.com,AG,1,,,DIRECTOR,,IT,,,,,,,,,1234567890,,0,A,,0.00,1,2026-02-06,,,C,,0,"16/12/2025 23:13 USR: AriadnaR - Usuario agregado
+"
+5891,,2025-10-02,"Carole Mohnblatt",carole@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",19,10,,,,,,,1234567890,,0,A,,0.00,1,2026-01-28,,,C,,0,"02/10/2025 21:12 USR: AriadnaR - Usuario agregado
+23/10/2025 06:51 USR: AriadnaR - Usuario modificado. 
+"
+5380,,2025-04-02,"Concha Diaz ",concha@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",18,11,,,,,,,1234567890,,0,A,,0.00,1,2026-02-11,"109,107,102,37,41",,C,,0,"024/04/2025 00:31 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+10/06/2025 08:25 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Eliminar Clientes [OFF]
+&emsp;Eliminar Empresas [OFF]
+&emsp;Agregar Proveedores [OFF]
+&emsp;Eliminar Proveedores [OFF]
+&emsp;Modificar reservaciones de otros usuarios [OFF]
+&emsp;Consultar reservaciones de otros usuarios [OFF]
+&emsp;Editar Proveedores [OFF]
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+19/06/2025 20:33 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Cancelar recibo de pago de cliente [OFF]
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Exportar Directorios [OFF]
+&emsp;Cambiar vendedor de reservación y cotización [OFF]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+&emsp;Crear y editar datos de grupos [OFF]
+23/06/2025 10:03 USR: AriadnaR - Usuario modificado. 
+"
+5906,,2025-10-09,"Diana Martinez",diana@gannetworld.com,AG,1,,,VENTAS,"Asesor C","Ventas ",18,09,,,,,,,1234567890,,0,A,,0.00,1,2026-02-11,,,C,,0,"09/10/2025 18:21 USR: AriadnaR - Usuario agregado
+"
+5653,,2025-07-17,"Elena Morales",elena@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",25,02,,,,,,,1234567890,,0,A,,0.00,1,2026-02-05,30,,C,,0,"17/07/2025 19:59 USR: AriadnaR - Usuario agregado
+"
+5911,,2025-10-13,"Esther Padial",esther@gannetworld.com,,1,,,ADMINISTRATIVO,,ADMINISTRACION,23,09,,,,,,,1234567890,,0,A,,0.00,1,2026-02-12,"97,108,109,53,71",,C,,0,"13/10/2025 03:20 USR: AriadnaR - Usuario agregado
+13/10/2025 09:11 USR: AriadnaR - Usuario modificado. 
+17/11/2025 08:28 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Descargar respaldo de datos [ON]
+15/12/2025 10:13 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Eliminar Clientes [ON]
+&emsp;Eliminar Empresas [ON]
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Anotaciones especiales en reservaciones (obs internas) [ON]
+&emsp;Cancelar reservaciones [ON]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [ON]
+&emsp;Registrar comisiones de proveedor en reservaciones, consultarlas y pagarlas, así como mostrar Alertas en Home [ON]
+&emsp;Cerrar reservaciones [ON]
+&emsp;Editar confirmación y tiempo límite de proveedores en el detalle de reservación [ON]
+&emsp;Agregar/Editar Destinos [ON]
+&emsp;Capturar o editar factura en comisiones x cobrar [ON]
+&emsp;Consultar reporte de incentivos [ON]
+&emsp;Revertir pago de comisión de proveedor pendiente [ON]
+&emsp;Cambiar vendedor de reservación y cotización [ON]
+&emsp;Modificar reservaciones [ON]
+&emsp;Eliminar servicios de reservaciones [ON]
+&emsp;Modificar servicios confirmados [ON]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+&emsp;Crear y editar datos de grupos [ON]
+&emsp;Mostrar alertas en Dashboard [ON]
+&emsp;Mostrar estadísticas en Dashboard [ON]
+&emsp;Cambiar estatus de cotizaciones [ON]
+&emsp;Editar fecha de creación de nueva reserva [ON]
+15/12/2025 11:14 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Realizar y eliminar traspasos entre cuentas [ON]
+&emsp;Editar calendario de cliente desde mis reservas [ON]
+&emsp;Registrar Ingresos de Operación [ON]
+&emsp;Registrar Gastos de Operación [ON]
+&emsp;Abrir reservaciones [ON]
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+17/12/2025 19:47 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Administrar catálogos [ON]
+&emsp;Cancelar pagos de cliente ya procesados e ingresos de operación [ON]
+&emsp;Cancelar órdenes de pago procesadas y gastos de operación	 [ON]
+&emsp;Revertir cobro de comisión pendiente de proveedor ya procesado [ON]
+&emsp;Editar estatus en calendario de pagos [ON]
+22/12/2025 08:32 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Crear reservaciones [ON]
+&emsp;Editar fecha de creación de nueva reserva [ON]
+22/01/2026 12:29 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Administrar usuarios y configurar Agencia [ON]
+"
+5596,,2025-06-24,"Fernanda Sapiña",fernanda@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",09,07,,,,,,,1234567890,,0,A,,0.00,1,2026-02-12,"99,108,59,79,38",,C,,0,"24/06/2025 00:06 USR: AriadnaR - Usuario agregado
+24/06/2025 00:32 USR: AriadnaR - Usuario modificado. 
+23/01/2026 13:30 USR: CarlosR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Agregar/Editar Destinos [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+"
+5565,,2025-06-16,"Helen Medal",helen@gannetworld.com,,1,,,VENTAS,Embajadora,"Ventas ",03,11,,,,,,,0034664432125,,0,A,,0.00,1,2026-01-27,"52,19,22,28,59",,C,,0,"16/06/2025 20:10 USR: AriadnaR - Usuario agregado
+19/06/2025 20:36 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+"
+6120,,2026-01-07,"Inmaculada Pena",inmaculada@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",,,,,,,,,+34672509241,,0,A,,0.00,1,0000-00-00,,,C,,0,"07/01/2026 13:09 USR: CarlosR - Usuario agregado
+"
+6130,,2026-01-12,"Irene Céspedes",irene@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",20,09,,,,,,,+34669068678,,0,A,,0.00,1,2026-02-11,"104,81",,C,,0,"12/01/2026 10:49 USR: CarlosR - Usuario agregado
+12/01/2026 11:26 USR: CarlosR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Agregar/Editar Destinos [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+"
+5700,,2025-08-08,"Isaac Gonzalez",isaac@gannetworld.com,,0,,,ADMINISTRATIVO,"Becario Finanzas",,22,05,,,,,,,1234567890,,0,A,,0.00,1,2025-12-11,"70,61,38,58,5",,C,,0,"08/08/2025 10:41 USR: AriadnaR - Usuario agregado
+15/12/2025 11:16 USR: AriadnaR - Usuario modificado. 
+"
+5893,,2025-10-02,"Isabel Benet",administracion@gannetworld.com,AG,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"02/10/2025 21:27 USR: AriadnaR - Usuario agregado
+"
+5598,,2025-06-24,"Jaime Gorozpe",jaime@gannetworld.com,AG,1,,,VENTAS,,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"24/06/2025 00:45 USR: AriadnaR - Usuario agregado
+"
+6025,,2025-11-19,"Jimena Martínez",jimena@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",04,08,,,,,,,1234567890,,0,A,,0.00,1,2026-02-11,"86,100,78,34,53",,C,,0,"19/11/2025 12:54 USR: AriadnaR - Usuario agregado
+19/11/2025 13:29 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Agregar Clientes [ON]
+&emsp;Agregar/Editar Empresas [ON]
+&emsp;Crear reservaciones [ON]
+&emsp;Anotaciones especiales en reservaciones (obs internas) [ON]
+&emsp;Registrar pago de cliente [ON]
+&emsp;Imprimir recibo de pago de cliente y mostrar alertas de tiempos límite en Home [ON]
+&emsp;Registrar pago a proveedor [ON]
+&emsp;Mostrar pestaña de proveedores en reserva e imprimir pago a proveedor, además de mostrar alertas en Home [ON]
+&emsp;Cancelar pago a proveedor y editar comisiones x cobrar [ON]
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Registrar comisiones de proveedor en reservaciones, consultarlas y pagarlas, así como mostrar Alertas en Home [ON]
+&emsp;Editar confirmación y tiempo límite de proveedores en el detalle de reservación [ON]
+&emsp;Capturar o editar factura en comisiones x cobrar [ON]
+&emsp;Consultar reportes propios [ON]
+&emsp;Revertir pago de comisión de proveedor pendiente [ON]
+&emsp;Exportar Reportes [ON]
+&emsp;Modificar reservaciones [ON]
+&emsp;Eliminar servicios de reservaciones [ON]
+&emsp;Modificar servicios confirmados [ON]
+&emsp;Editar calendario de cliente desde mis reservas [ON]
+&emsp;Editar Clientes [ON]
+&emsp;Mostrar alertas en Dashboard [ON]
+&emsp;Mostrar estadísticas en Dashboard [ON]
+&emsp;Abrir reservaciones [ON]
+&emsp;Cambiar estatus de cotizaciones [ON]
+23/01/2026 13:32 USR: CarlosR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Agregar/Editar Destinos [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+"
+5654,,2025-07-17,"Jorge Perea",jorge.perea@gannetworld.com,AG,1,,,VENTAS,,"Ventas ",26,06,,,,,,,1234567890,,0,A,,0.00,1,2025-12-17,"61,77,35,42,30",,C,,0,"17/07/2025 20:11 USR: AriadnaR - Usuario agregado
+"
+5890,,2025-10-02,"Julia Carbajales",julia@gannetworld.com,,1,,,VENTAS,"Travel Advisor","Ventas ",22,09,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"02/10/2025 20:59 USR: AriadnaR - Usuario agregado
+02/10/2025 21:03 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Agregar Clientes [ON]
+&emsp;Agregar/Editar Empresas [ON]
+&emsp;Crear reservaciones [ON]
+&emsp;Anotaciones especiales en reservaciones (obs internas) [ON]
+&emsp;Registrar pago de cliente [ON]
+&emsp;Imprimir recibo de pago de cliente y mostrar alertas de tiempos límite en Home [ON]
+&emsp;Registrar pago a proveedor [ON]
+&emsp;Mostrar pestaña de proveedores en reserva e imprimir pago a proveedor, además de mostrar alertas en Home [ON]
+&emsp;Cancelar pago a proveedor y editar comisiones x cobrar [ON]
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Registrar comisiones de proveedor en reservaciones, consultarlas y pagarlas, así como mostrar Alertas en Home [ON]
+&emsp;Editar confirmación y tiempo límite de proveedores en el detalle de reservación [ON]
+&emsp;Capturar o editar factura en comisiones x cobrar [ON]
+&emsp;Consultar reportes propios [ON]
+&emsp;Revertir pago de comisión de proveedor pendiente [ON]
+&emsp;Exportar Reportes [ON]
+&emsp;Modificar reservaciones [ON]
+&emsp;Eliminar servicios de reservaciones [ON]
+&emsp;Modificar servicios confirmados [ON]
+&emsp;Editar calendario de cliente desde mis reservas [ON]
+&emsp;Editar Clientes [ON]
+&emsp;Mostrar alertas en Dashboard [ON]
+&emsp;Mostrar estadísticas en Dashboard [ON]
+&emsp;Abrir reservaciones [ON]
+&emsp;Cambiar estatus de cotizaciones [ON]
+"
+5787,,2025-09-04,"Lolo de Juan",administracion@gannetworld.com,AG,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"04/09/2025 22:01 USR: AriadnaR - Usuario agregado
+"
+5597,,2025-06-24,"Marc Kosberg",marc@gannetworld.com,AG,1,,,DIRECTOR,,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"24/06/2025 00:42 USR: AriadnaR - Usuario agregado
+"
+5381,,2025-04-02,"Martin Benedetti",martin@gannetworld.com,,1,,,VENTAS,,Air,21,11,,,,,,,1234567890,,0,A,,0.00,1,2026-02-10,"84,67,65,107,106",,C,qWDqd9E0OZzjOtcaXgSTqvKCWJRg6JTL:scS21BphSscUNPLJAMLMkx5pBaPfl+PQpY41eBTi6Dc=,1,"024/04/2025 00:31 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+05/05/2025 09:28 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [ON]
+&emsp;Cerrar reservaciones [ON]
+&emsp;Consultar reporte de incentivos [ON]
+&emsp;Modificar servicios confirmados [ON]
+04/06/2025 12:16 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Agregar Proveedores [OFF]
+&emsp;Cancelar reservaciones [OFF]
+&emsp;Consultar reportes (de todos los usuarios) [OFF]
+&emsp;Cerrar reservaciones [OFF]
+&emsp;Consultar reservaciones de otros usuarios [OFF]
+04/06/2025 12:21 USR: AriadnaR - Usuario modificado. 
+10/06/2025 08:26 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Eliminar Clientes [OFF]
+&emsp;Eliminar Empresas [OFF]
+&emsp;Eliminar Proveedores [OFF]
+&emsp;Modificar reservaciones de otros usuarios [OFF]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [OFF]
+&emsp;Cambiar vendedor de reservación y cotización [OFF]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [OFF]
+&emsp;Editar Proveedores [OFF]
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+11/06/2025 08:29 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Consultar reservaciones de otros usuarios [ON]
+19/06/2025 20:35 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Cancelar recibo de pago de cliente [OFF]
+&emsp;Consultar reportes (de todos los usuarios) [ON]
+&emsp;Exportar Directorios [OFF]
+&emsp;Consultar reporte de incentivos [OFF]
+&emsp;Mostrar alertas de tiempos límite de todos los usuarios [ON]
+&emsp;Crear y editar datos de grupos [OFF]
+"
+6121,,2026-01-07,"Mercedes Pina",mercedes@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",,,,,,,,,+34658808885,,0,A,,0.00,1,2026-01-09,,,C,,0,"07/01/2026 13:20 USR: CarlosR - Usuario agregado
+"
+5788,,2025-09-04,"Natalia Delclaux",administracion@gannetworld.com,AG,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"04/09/2025 22:02 USR: AriadnaR - Usuario agregado
+"
+5375,,2025-04-01,"Pablo Ezcurra",pablo@gannetworld.com,,0,,,ADMINISTRATIVO,"Becario Finanzas",,,,,,,,,,+34679502463,,0,A,,0.00,1,2025-08-28,"32,33,26,25,14",,C,,0,"021/04/2025 09:02 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Descargar respaldo de datos [ON]
+13/05/2025 00:43 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Administrar catálogos [ON]
+&emsp;Consultar reportes [ON]
+14/05/2025 08:16 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Cancelar pagos de cliente ya procesados e ingresos de operación [ON]
+&emsp;Cancelar órdenes de pago procesadas y gastos de operación	 [ON]
+&emsp;Realizar y eliminar traspasos entre cuentas [ON]
+&emsp;Procesar comisiones de proveedor pendientes [ON]
+&emsp;Revertir cobro de comisión pendiente de proveedor ya procesado [ON]
+&emsp;Editar estatus en calendario de pagos [ON]
+&emsp;Registrar Ingresos de Operación [ON]
+&emsp;Procesar Ingresos de Operación [ON]
+14/05/2025 08:17 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Eliminar Clientes [ON]
+&emsp;Eliminar Empresas [ON]
+&emsp;Crear reservaciones [ON]
+&emsp;Modificar reservaciones de otros usuarios [ON]
+&emsp;Cancelar reservaciones [ON]
+&emsp;Registrar pago de cliente [ON]
+&emsp;Cancelar recibo de pago de cliente [ON]
+&emsp;Registrar pago a proveedor [ON]
+&emsp;Cancelar pago a proveedor y editar comisiones x cobrar [ON]
+&emsp;Modificar/eliminar cotizaciones de otros usuarios [ON]
+&emsp;Registrar comisiones de proveedor en reservaciones, consultarlas y pagarlas, así como mostrar Alertas en Home [ON]
+&emsp;Cerrar reservaciones [ON]
+&emsp;Consultar reportes propios [ON]
+&emsp;Cambiar vendedor de reservación y cotización [ON]
+&emsp;Modificar reservaciones [ON]
+&emsp;Eliminar servicios de reservaciones [ON]
+&emsp;Modificar servicios confirmados [ON]
+&emsp;Editar calendario de cliente desde mis reservas [ON]
+&emsp;Crear y editar datos de grupos [ON]
+&emsp;Abrir reservaciones [ON]
+&emsp;Cambiar estatus de cotizaciones [ON]
+&emsp;Editar fecha de creación de nueva reserva [ON]
+10/06/2025 08:07 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+10/06/2025 08:26 USR: AriadnaR - Usuario modificado. 
+15/12/2025 11:10 USR: AriadnaR - Usuario modificado. 
+"
+5666,,2025-07-24,"Paula Gamas",paula@gannetworld.com,AG,1,,,DIRECTOR,,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"24/07/2025 14:20 USR: AriadnaR - Usuario agregado
+"
+5728,,2025-08-21,"Paulina Alvarez",paulina.alvarez@gannetworld.com,AG,1,,,VENTAS,"Travel Advisor","Ventas ",31,12,,,,,,,1234567890,,0,A,,0.00,1,2026-01-16,58,,C,,0,"21/08/2025 16:30 USR: AriadnaR - Usuario agregado
+"
+5374,,2025-04-01,"Pedro Dominguez",pedro@gannetworld.com,AG,1,,,OTRO,,,,,,,,,,,,,0,A,,0.00,1,2026-02-12,"27,16,13,36,41",,C,,0,0
+5786,,2025-09-04,"Reyes Bragimo",administracion@gannetworld.com,AG,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"04/09/2025 21:59 USR: AriadnaR - Usuario agregado
+"
+5462,,2025-05-15,"Salvador Ramirez",salvador@gannetworld.com,,1,,,ADMINISTRATIVO,,ADMINISTRACION,03,08,,,,,,,1234567890,,0,A,,0.00,1,2026-02-11,"99,102,103,53,87",,C,,0,"15/05/2025 04:06 USR: AriadnaR - Usuario agregado
+10/06/2025 08:26 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Editar fecha de creación de nueva reserva [OFF]
+22/07/2025 08:30 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Descargar respaldo de datos [ON]
+"
+6043,,2025-12-02,"Sofia Romano",finance.training@gannetworld.com,,1,,,ADMINISTRATIVO,"Becario Finanzas",ADMINISTRACION,31,03,,,,,,,+34649876917,,0,A,,0.00,1,2026-02-12,"99,67,107,105,102",,C,,0,"02/12/2025 19:13 USR: AriadnaR - Usuario agregado
+02/12/2025 19:21 USR: AriadnaR - Usuario modificado. 
+10/12/2025 09:05 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Registrar pago a proveedor [ON]
+&emsp;Registrar comisiones de proveedor en reservaciones, consultarlas y pagarlas, así como mostrar Alertas en Home [ON]
+&emsp;Revertir pago de comisión de proveedor pendiente [ON]
+15/12/2025 11:15 USR: AriadnaR - Usuario modificado. 
+Permisos modificados: 
+&emsp;Agregar Clientes [ON]
+&emsp;Eliminar Clientes [ON]
+&emsp;Agregar/Editar Empresas [ON]
+&emsp;Eliminar Empresas [ON]
+&emsp;Agregar Proveedores [ON]
+&emsp;Eliminar Proveedores [ON]
+&emsp;Editar Clientes [ON]
+&emsp;Editar Proveedores [ON]
+&emsp;Crear y editar datos de grupos [ON]
+"
+5800,,2025-09-08,"Talya Kivanc",talya@gannetworld.com,AG,1,,,VENTAS,"Product Manager","Ventas ",09,06,,,,,,,1234567890,,0,A,,0.00,1,2025-10-16,,,C,,0,"08/09/2025 21:13 USR: AriadnaR - Usuario agregado
+"
+5671,,2025-07-28,"Tatiana Pankratof",administracion@gannetworld.com,,1,,,VENTAS,Nomad,,,,,,,,,,1234567890,,0,A,,0.00,1,0000-00-00,,,C,,0,"28/07/2025 21:36 USR: AriadnaR - Usuario agregado
+04/09/2025 21:54 USR: AriadnaR - Usuario modificado. 
+"

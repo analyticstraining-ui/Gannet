@@ -1,0 +1,86 @@
+name: Weekly Sales Report
+
+# Cuándo se ejecuta:
+#   - Cada lunes a las 7:00 AM hora Madrid
+#     Invierno (CET = UTC+1): 7:00 Madrid = 6:00 UTC
+#     Verano (CEST = UTC+2):  7:00 Madrid = 5:00 UTC
+#   - Manualmente desde GitHub (botón "Run workflow")
+on:
+  schedule:
+    - cron: '0 5 * * 1'   # 5:00 UTC = 7:00 Madrid en verano (abr-oct)
+    - cron: '0 6 * * 1'   # 6:00 UTC = 7:00 Madrid en invierno (nov-mar)
+  workflow_dispatch:
+    inputs:
+      week:
+        description: 'Número de semana (dejar vacío para auto-detectar)'
+        required: false
+      entity:
+        description: 'Entidad a procesar'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - espana
+          - mexico
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 0. Si es cron, verificar que son las 7:00 en Madrid
+      #    (evita ejecutar dos veces: una a las 5 UTC y otra a las 6 UTC)
+      - name: Check Madrid time
+        if: github.event_name == 'schedule'
+        id: tz_check
+        run: |
+          MADRID_HOUR=$(TZ='Europe/Madrid' date +%H)
+          echo "madrid_hour=$MADRID_HOUR"
+          if [ "$MADRID_HOUR" != "07" ]; then
+            echo "No son las 7:00 en Madrid (son las $MADRID_HOUR:00). Saltando."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Son las 7:00 en Madrid. Ejecutando."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 1. Descargar el código del repo
+      - name: Checkout repo
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/checkout@v4
+
+      # 2. Instalar Python
+      - name: Setup Python
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Instalar dependencias
+      - name: Install dependencies
+        if: steps.tz_check.outputs.skip != 'true'
+        run: pip install -r requirements.txt
+
+      # 4. Ejecutar el script
+      - name: Generate Weekly Report
+        if: steps.tz_check.outputs.skip != 'true'
+        run: |
+          WEEK_ARG=""
+          ENTITY_ARG=""
+          if [ -n "${{ github.event.inputs.week }}" ]; then
+            WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          fi
+          if [ -n "${{ github.event.inputs.entity }}" ]; then
+            ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
+          fi
+          python main.py $WEEK_ARG $ENTITY_ARG
+
+      # 5. Subir los archivos generados como artefactos descargables
+      - name: Upload Weekly Report
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report
+          path: output/
+          retention-days: 30

@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Guide/USE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="Weekply and bookings">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -14,6 +13,12 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -60,6 +65,19 @@
       <option name="presentableId" value="Default" />
       <updated>1770890787082</updated>
     </task>
+    <task id="LOCAL-00001" summary="Weekply and bookings">
+      <option name="closed" value="true" />
+      <created>1770905501552</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1770905501552</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Weekply and bookings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Weekply and bookings" />
   </component>
 </project>
