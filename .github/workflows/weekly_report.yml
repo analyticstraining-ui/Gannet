@@ -1,0 +1,109 @@
+name: Weekly Sales Report
+
+# =========================================================
+# CUÁNDO SE EJECUTA
+# =========================================================
+# - Cada lunes a las 7:00 AM hora Madrid
+#   Invierno (CET, UTC+1): 7:00 Madrid = 6:00 UTC
+#   Verano   (CEST, UTC+2): 7:00 Madrid = 5:00 UTC
+#
+# GitHub Actions usa UTC, por eso lanzamos DOS cron
+# y luego comprobamos la hora real en Madrid.
+#
+# - También se puede lanzar manualmente desde GitHub
+# =========================================================
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'   # Verano:  5:00 UTC = 7:00 Madrid
+    - cron: '0 6 * * 1'   # Invierno: 6:00 UTC = 7:00 Madrid
+
+  workflow_dispatch:
+    inputs:
+      week:
+        description: 'Número de semana (vacío = detectar automáticamente)'
+        required: false
+      entity:
+        description: 'Entidad (SL, LLC o ALL)'
+        required: false
+        default: 'ALL'
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------
+      # 0. Comprobar que son las 7:00 AM en Madrid
+      #    (evita ejecutar dos veces el mismo lunes)
+      # -----------------------------------------------------
+      - name: Check Madrid time
+        if: github.event_name == 'schedule'
+        id: tz_check
+        run: |
+          MADRID_HOUR=$(TZ='Europe/Madrid' date +%H)
+          echo "Hora en Madrid: $MADRID_HOUR:00"
+
+          if [ "$MADRID_HOUR" != "07" ]; then
+            echo "No son las 7:00 en Madrid. Saltando ejecución."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Son las 7:00 en Madrid. Ejecutando workflow."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # -----------------------------------------------------
+      # 1. Descargar el código del repositorio
+      # -----------------------------------------------------
+      - name: Checkout repository
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------
+      # 2. Configurar Python
+      # -----------------------------------------------------
+      - name: Setup Python
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # -----------------------------------------------------
+      # 3. Instalar dependencias
+      # -----------------------------------------------------
+      - name: Install dependencies
+        if: steps.tz_check.outputs.skip != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # -----------------------------------------------------
+      # 4. Ejecutar el script principal
+      # -----------------------------------------------------
+      - name: Generate Weekly Report
+        if: steps.tz_check.outputs.skip != 'true'
+        run: |
+          WEEK_ARG=""
+          ENTITY_ARG=""
+
+          if [ -n "${{ github.event.inputs.week }}" ]; then
+            WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          fi
+
+          if [ -n "${{ github.event.inputs.entity }}" ]; then
+            ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
+          fi
+
+          python main.py $WEEK_ARG $ENTITY_ARG
+
+      # -----------------------------------------------------
+      # 5. Subir los Excel generados como artefacto
+      # -----------------------------------------------------
+      - name: Upload Weekly Report
+        if: steps.tz_check.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report
+          path: |
+            output/**/*.xlsx
+            output/**/*.csv
