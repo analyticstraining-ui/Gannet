@@ -1,2 +1,0 @@
-# Gannet
-Automatizacion de reports 

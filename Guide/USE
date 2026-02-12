@@ -1,0 +1,55 @@
+Cómo usarlo (tu workflow semanal)
+
+  Paso 1 — Descargar datos de Corsario:
+  - Vas a Corsario SL → Configuración → Respaldar datos → Reservaciones
+  - Vas a Corsario LLC → lo mismo
+  - Te bajas los CSVs
+
+  Paso 2 — Poner los CSVs en data/:
+  - Los de España en data/espana/ (necesitas reserva.csv y dreserva.csv)
+  - Los de México en data/mexico/ (lo mismo)
+  - Los puedes sobreescribir directamente, no importa el nombre exacto
+
+  Paso 3 — Ejecutar:
+  python3 main.py --week 7
+
+  Paso 4 — Recoger los archivos de output/:
+  - output/Week 7.xlsx → se lo mandas a Pedro (Weekly Report)
+  - output/espana/booking_window_7.xlsx → control interno SL
+  - output/mexico/booking_window_7.xlsx → control interno LLC
+  - Los errores que te salgan en consola → se los reportas a Madrid
+
+  Paso 5 — Abrir Week 7.xlsx en Microsoft Excel para que los pivots se refresquen automáticamente.
+
+  Flujo interno del script
+
+  python3 main.py --week 7
+          │
+          ▼
+    [1] Obtiene tipos de cambio (API o fallback)
+          │
+          ▼
+    [2] Bookings SL (control interno)
+          ├─ Lee data/espana/reserva.csv + dreserva.csv
+          ├─ Filtra canceladas, calcula rentabilidad
+          ├─ Genera booking_window_7.xlsx (solo SL)
+          └─ Valida errores → los imprime en consola
+          │
+          ▼
+    [2] Bookings LLC (control interno)
+          ├─ Lee data/mexico/reserva.csv + dreserva.csv
+          ├─ Lo mismo que arriba pero con LLC
+          └─ Genera booking_window_7.xlsx (solo LLC)
+          │
+          ▼
+    [3] Weekly Report combinado
+          ├─ Copia plantilla templates/Week 6.xlsx
+          ├─ Pega SL + LLC juntos en hoja DATA
+          ├─ Pega SL + LLC juntos en hoja DATA SERV (con fórmulas XLOOKUP)
+          ├─ Llena Booking Window 2026 (combinado, en USD)
+          ├─ Actualiza tipos de cambio en lookup table
+          ├─ Configura pivots para auto-refresh
+          └─ Guarda output/Week 7.xlsx
+
+  No detecta "la última upload" — simplemente lee los CSVs que estén en data/espana/ y data/mexico/ en ese momento. Cada vez que quieras generar un reporte nuevo, sobreescribes los CSVs con los datos nuevos y
+   ejecutas el script.

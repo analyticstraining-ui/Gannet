@@ -1,0 +1,38 @@
+  Gannet/
+  ├── main.py                  ← Lo que ejecutas: python3 main.py --week 7
+  ├── config.py                ← Configuración (rutas, monedas, FX fallback)
+  ├── requirements.txt         ← Dependencias: pandas, openpyxl, requests
+  ├── .gitignore               ← Ignora data/, output/, templates/ en git
+  │
+  ├── src/                     ← Código organizado en módulos
+  │   ├── data_loader.py       ← Lee los CSVs y filtra canceladas
+  │   ├── fx_rates.py          ← Llama API de tipos de cambio (o usa fallback)
+  │   ├── validators.py        ← Detecta errores (montos negativos, % altos, etc.)
+  │   │
+  │   ├── weekly/              ← Todo lo del Weekly Report
+  │   │   ├── data_sheet.py    ← Construye las filas de la hoja DATA
+  │   │   ├── data_serv_sheet.py ← Construye las filas de DATA SERV
+  │   │   └── excel_writer.py  ← Copia template, escribe datos, fórmulas, pivots
+  │   │
+  │   └── bookings/            ← Todo lo del Booking Window
+  │       └── booking_window.py ← Matriz semana x mes en USD + export Excel
+  │
+  ├── data/                    ← TÚ PONES LOS CSVs AQUÍ
+  │   ├── espana/              ← CSVs de Corsario SL
+  │   │   ├── reserva.csv
+  │   │   ├── dreserva.csv
+  │   │   ├── proveedor.csv
+  │   │   └── usuario.csv
+  │   └── mexico/              ← CSVs de Corsario LLC
+  │       ├── reserva.csv      (o "reserva (1).csv", lo detecta solo)
+  │       └── dreserva.csv
+  │
+  ├── templates/
+  │   └── Week 6.xlsx          ← Plantilla base (NO se modifica, solo se copia)
+  │
+  └── output/                  ← AQUÍ SALEN LOS ARCHIVOS GENERADOS
+      ├── Week 7.xlsx          ← Weekly Report combinado (SL + LLC)
+      ├── espana/
+      │   └── booking_window_7.xlsx  ← Booking Window solo SL
+      └── mexico/
+          └── booking_window_7.xlsx  ← Booking Window solo LLC
