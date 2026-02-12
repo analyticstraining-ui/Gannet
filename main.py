@@ -4,11 +4,11 @@ Generador automático del Weekly Sales Report de Gannet.
 
 Flujo:
     1. Obtener tipos de cambio (una vez)
-    2. Por cada entidad: cargar datos, generar Bookings (control interno), validar
-    3. Combinar ambos bookings → generar Weekly Report con pivots + booking window
+    2. Por cada entidad: cargar datos, validar
+    3. Combinar → generar Weekly Report con pivots + booking window + FX + errores
 
 Uso:
-    python3 main.py                          # ambas entidades, semana actual
+    python3 main.py                          # ambas entidades, semana anterior
     python3 main.py --week 7                 # semana específica
     python3 main.py --entity espana          # solo España
     python3 main.py --entity mexico          # solo México
@@ -25,10 +25,7 @@ from src.data_loader import load_reserva, load_dreserva, compute_rentabilidad
 from src.fx_rates import get_fx_rates
 from src.validators import detect_errors
 from src.weekly import build_data_rows, build_serv_rows, generate_weekly_excel
-from src.bookings import (
-    build_booking_matrix, write_booking_to_excel, export_booking_xlsx,
-    export_bookings_xlsx,
-)
+from src.bookings import build_booking_matrix, write_booking_to_excel, export_bookings_xlsx
 
 
 def main():
@@ -37,7 +34,7 @@ def main():
     )
     parser.add_argument(
         "--week", type=int, default=None,
-        help="Número de semana (default: semana actual ISO)"
+        help="Número de semana (default: semana anterior)"
     )
     parser.add_argument(
         "--entity", type=str, default="all",
@@ -47,7 +44,7 @@ def main():
     args = parser.parse_args()
 
     today = datetime.now()
-    week_num = args.week or today.isocalendar()[1]
+    week_num = args.week or (today.isocalendar()[1] - 1)
 
     print(f"═══ Gannet Reports - Semana {week_num} ═══")
 
@@ -67,11 +64,11 @@ def main():
     fx = get_fx_rates()
 
     # ══════════════════════════════════════════════════════════════
-    # Step 2: BOOKINGS por entidad (control interno)
-    #   - Se crean PRIMERO porque el Weekly se basa en ellos
+    # Step 2: Cargar datos por entidad
     # ══════════════════════════════════════════════════════════════
     all_data_rows = []
     all_serv_rows = []
+    all_errors = []
     total_serv_count = 0
     entity_info = {}
 
@@ -79,7 +76,6 @@ def main():
         company = cfg["company"]
         label = cfg["label"]
         data_dir = cfg["data_dir"]
-        output_dir = cfg["output_dir"]
 
         if not os.path.exists(data_dir):
             print(f"\n⚠ Directorio de datos no encontrado para {label}: {data_dir}")
@@ -87,7 +83,7 @@ def main():
             continue
 
         print(f"\n{'─' * 60}")
-        print(f"  [2] Bookings {label} ({company}) — Control Interno")
+        print(f"  [2] {label} ({company})")
         print(f"{'─' * 60}")
 
         # Load data
@@ -101,17 +97,18 @@ def main():
         serv_rows, serv_count = build_serv_rows(dreserva_df, reserva_df, company)
         print(f"  DATA: {len(data_rows)} filas | DATA SERV: {serv_count} filas")
 
-        # Bookings per entity (same data as DATA tab, separated)
-        os.makedirs(output_dir, exist_ok=True)
-        bookings_path = os.path.join(output_dir, f"Bookings {company}.xlsx")
+        # Bookings per entity
+        output_dir_entity = cfg["output_dir"]
+        os.makedirs(output_dir_entity, exist_ok=True)
+        bookings_path = os.path.join(output_dir_entity, f"Bookings_{company}_{week_num}_{today.year}.xlsx")
         export_bookings_xlsx(data_rows, bookings_path, company)
 
         # Validate and report errors
         errors = detect_errors(reserva_df, rentabilidad_df)
+        for err in errors:
+            all_errors.append((company, err))
         if errors:
-            print(f"\n  ⚠ {len(errors)} posibles errores para reportar:")
-            for err in errors:
-                print(f"    - {err}")
+            print(f"\n  ⚠ {len(errors)} posibles errores detectados")
         else:
             print(f"  Sin errores detectados.")
 
@@ -126,7 +123,6 @@ def main():
             "n_data": len(data_rows),
             "n_serv": serv_count,
             "n_errors": len(errors),
-            "bookings_path": bookings_path,
         }
 
     if not all_data_rows:
@@ -134,17 +130,15 @@ def main():
         sys.exit(1)
 
     # ══════════════════════════════════════════════════════════════
-    # Step 3: WEEKLY REPORT combinado (SL + LLC → 1 archivo)
-    #   - Copia ambos bookings a 1 sheet + pivots + booking window
+    # Step 3: WEEKLY REPORT combinado
     # ══════════════════════════════════════════════════════════════
     output_dir = os.path.join(BASE_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
-    output_xlsx = os.path.join(output_dir, f"Week {week_num}.xlsx")
+    output_xlsx = os.path.join(output_dir, f"Week_{week_num}_{today.year}.xlsx")
 
     print(f"\n{'─' * 60}")
-    print(f"  [3] Weekly Report combinado — Week {week_num}")
+    print(f"  [3] Weekly Report — Week {week_num}")
     print(f"{'─' * 60}")
-    print(f"  Copiando bookings SL + LLC a 1 sheet...")
     print(f"  Total: DATA={len(all_data_rows)} filas, DATA SERV={total_serv_count} filas")
 
     wb = generate_weekly_excel(
@@ -158,6 +152,47 @@ def main():
     print(f"  Booking Window: semanas con datos: {weeks_with_data}")
     write_booking_to_excel(wb, combined_matrix)
 
+    # ── Hoja FX RATES ────────────────────────────────────────────
+    from openpyxl.styles import Font, PatternFill, Alignment
+    if "FX RATES" in wb.sheetnames:
+        del wb["FX RATES"]
+    ws_fx = wb.create_sheet("FX RATES")
+    hdr_font = Font(bold=True, color="FFFFFF")
+    hdr_fill = PatternFill(start_color="2F5496", end_color="2F5496", fill_type="solid")
+    ws_fx.column_dimensions["A"].width = 12
+    ws_fx.column_dimensions["B"].width = 16
+    ws_fx.column_dimensions["C"].width = 16
+    for c, h in enumerate(["Moneda", "→ EUR", "→ USD"], 1):
+        cell = ws_fx.cell(1, c, h)
+        cell.font = hdr_font
+        cell.fill = hdr_fill
+        cell.alignment = Alignment(horizontal="center")
+    for i, (moneda, rates) in enumerate(sorted(fx.items()), 2):
+        ws_fx.cell(i, 1, moneda)
+        cell_eur = ws_fx.cell(i, 2, rates.get("EUR", 0))
+        cell_usd = ws_fx.cell(i, 3, rates.get("USD", 0))
+        cell_eur.number_format = '0.000000'
+        cell_usd.number_format = '0.000000'
+    print(f"  Hoja FX RATES: {len(fx)} monedas")
+
+    # ── Hoja ERRORES ─────────────────────────────────────────────
+    if all_errors:
+        if "ERRORES" in wb.sheetnames:
+            del wb["ERRORES"]
+        ws_err = wb.create_sheet("ERRORES")
+        err_fill = PatternFill(start_color="C00000", end_color="C00000", fill_type="solid")
+        ws_err.column_dimensions["A"].width = 12
+        ws_err.column_dimensions["B"].width = 80
+        for c, h in enumerate(["Compania", "Error detectado"], 1):
+            cell = ws_err.cell(1, c, h)
+            cell.font = hdr_font
+            cell.fill = err_fill
+            cell.alignment = Alignment(horizontal="center")
+        for i, (comp, err) in enumerate(all_errors, 2):
+            ws_err.cell(i, 1, comp)
+            ws_err.cell(i, 2, err)
+        print(f"  Hoja ERRORES: {len(all_errors)} posibles errores")
+
     print(f"  Guardando {output_xlsx}...")
     wb.save(output_xlsx)
     wb.close()
@@ -168,9 +203,8 @@ def main():
     print(f"  RESUMEN - Semana {week_num}")
     print(f"{'═' * 60}")
     for key, info in entity_info.items():
-        print(f"\n  Bookings {info['label']} ({info['company']}):")
+        print(f"\n  {info['label']} ({info['company']}):")
         print(f"    DATA: {info['n_data']} | DATA SERV: {info['n_serv']} | Errores: {info['n_errors']}")
-        print(f"    Bookings: {info['bookings_path']}")
     print(f"\n  Weekly Report: {output_xlsx}")
     print(f"    DATA: {len(all_data_rows)} filas | DATA SERV: {total_serv_count} filas")
 
