@@ -1,0 +1,1 @@
+from src.individual.reports import generate_individual_reports

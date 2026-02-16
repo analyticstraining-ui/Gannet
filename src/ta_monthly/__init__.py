@@ -1,0 +1,1 @@
+from src.ta_monthly.report import generate_ta_monthly_report
