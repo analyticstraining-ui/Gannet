@@ -89,41 +89,31 @@ Para que funcione:
 
 ## Estructura del proyecto
 
-```
-Gannet/
-├── main.py                         # Punto de entrada
-├── config.py                       # Rutas, entidades, FX fallback, meses
-├── requirements.txt                # pandas, openpyxl, requests
-├── .gitignore
-│
-├── .github/workflows/
-│   └── weekly_report.yml           # GitHub Actions: lunes 7am Madrid
-│
-├── src/
-│   ├── data_loader.py              # Lee CSVs, filtra canceladas, calcula rentabilidad
-│   ├── fx_rates.py                 # API tipos de cambio + fallback
-│   ├── validators.py               # Detecta errores en los datos
-│   │
-│   ├── weekly/                     # Modulo Weekly Report
-│   │   ├── data_sheet.py           # Construye filas de hoja DATA (cols A-Z)
-│   │   ├── data_serv_sheet.py      # Construye filas de hoja DATA SERV
-│   │   └── excel_writer.py         # Copia plantilla, escribe datos, formulas XLOOKUP, pivots
-│   │
-│   └── bookings/                   # Modulo Bookings
-│       ├── booking_window.py       # Matriz booking window (semana x mes) en USD
-│       └── export_bookings.py      # Exporta datos DATA como Excel por entidad
-│
-├── data/                           # CSVs de Corsario (se sobreescriben cada semana)
-│   ├── espana/
-│   └── mexico/
-│
-├── templates/
-│   └── Week 6.xlsx                 # Plantilla base (no se modifica)
-│
-└── output/                         # Archivos generados (gitignored)
-    ├── Week N.xlsx
-    ├── espana/Bookings SL.xlsx
-    └── mexico/Bookings LLC.xlsx
+```src/                                                                                                                                                                                                          
+  ├── data_loader.py          ← compartido                                                                                                                                                                      
+  ├── fx_rates.py             ← compartido                                                                                                                                                                      
+  ├── validators.py           ← compartido                                                                                                                                                                      
+  │                                                                                                                                                                                                             
+  ├── weekly/                 ← Weekly Sales Report                                                                                                                                                             
+  │   ├── data_sheet.py                                                                                                                                                                                         
+  │   ├── data_serv_sheet.py                                                                                                                                                                                    
+  │   ├── excel_writer.py
+  │   ├── diferencia.py
+  │   ├── fx_sheet.py
+  │   └── errores_sheet.py
+  │
+  ├── bookings/               ← Bookings Report
+  │   ├── booking_window.py
+  │   └── export_bookings.py
+  │
+  ├── dashboard/              ← Dashboard
+  │   └── dashboard.py
+  │
+  ├── individual/             ← Reportes Individuales por TA
+  │   └── reports.py
+  │
+  └── ta_monthly/             ← Reporte Mensual Consolidado TAs
+      └── report.py
 ```
 
 ## Flujo interno

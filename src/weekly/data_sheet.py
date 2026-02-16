@@ -1,5 +1,7 @@
 """
 Construye el DataFrame para la hoja DATA del Weekly Report.
+
+Cada reserva usa el tipo de cambio histórico de su fecha de creación.
 """
 
 from datetime import datetime, timedelta
@@ -7,6 +9,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from config import MONTH_NAMES_ES
+from src.fx_rates import get_historical_fx
 
 
 def _parse_date(val):
@@ -21,13 +24,14 @@ def _parse_date(val):
         return None
 
 
-def build_data_rows(reserva_df, rentabilidad_df, fx, company):
+def build_data_rows(reserva_df, rentabilidad_df, company):
     """Build the DATA sheet rows (columns A-Z).
+
+    Uses historical exchange rates based on each reservation's date.
 
     Args:
         reserva_df: Filtered reserva DataFrame.
         rentabilidad_df: Rentabilidad by folio.
-        fx: Exchange rates dict {currency: {EUR: rate, USD: rate}}.
         company: Entity identifier ("SL" or "LLC").
 
     Returns:
@@ -46,11 +50,13 @@ def build_data_rows(reserva_df, rentabilidad_df, fx, company):
         total_cliente = float(r.get("total_cliente", 0) or 0)
         rentabilidad = float(r.get("rentabilidad", 0) or 0)
 
+        # Tipo de cambio histórico del día de la reserva
+        fx = get_historical_fx(fecha)
         fx_rates = fx.get(moneda, fx.get("EUR", {"EUR": 1.0, "USD": 1.16}))
         fx_eur = fx_rates["EUR"]
         fx_usd = fx_rates["USD"]
 
-        semana = fecha.isocalendar()[1] if fecha else None
+        semana = (int(fecha.strftime('%W')) + 1) if fecha else None
         fecha_45 = fecha_fin + timedelta(days=45) if fecha_fin else None
         mes_45_nombre = MONTH_NAMES_ES.get(fecha_45.month) if fecha_45 else None
         pct_rent = (rentabilidad / total_cliente) if total_cliente != 0 else 0

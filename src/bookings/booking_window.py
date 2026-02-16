@@ -38,7 +38,7 @@ def build_booking_matrix(data_rows):
         if not fecha or not fecha_inicio:
             continue
 
-        sale_week = fecha.isocalendar()[1]
+        sale_week = int(fecha.strftime('%W')) + 1
         dep_year = fecha_inicio.year
         dep_month = fecha_inicio.month
 
