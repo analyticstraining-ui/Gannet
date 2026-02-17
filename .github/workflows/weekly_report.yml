@@ -57,9 +57,10 @@ jobs:
           python main.py $WEEK_ARG $ENTITY_ARG
 
       - name: Upload Weekly Report
-        if: steps.tz_check.outputs.skip != 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: weekly-report
           path: output/
           retention-days: 30
+
