@@ -1,0 +1,48 @@
+name: Monthly TA Reports
+
+on:
+  schedule:
+    - cron: '0 6 10 * *'   # Día 10 de cada mes a las 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Tipo de reporte'
+        required: true
+        default: 'individual'
+        type: choice
+        options:
+          - individual
+          - ta_monthly
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate Monthly Report
+        run: |
+          if [ "${{ github.event.inputs.report_type }}" = "ta_monthly" ]; then
+            echo "▶ Ejecutando Reporte Mensual Consolidado TAs"
+            python main.py --ta-monthly
+          else
+            echo "▶ Ejecutando Reportes Individuales TA"
+            python main.py --individual
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-${{ github.event.inputs.report_type }}
+          path: output/
+          retention-days: 90
