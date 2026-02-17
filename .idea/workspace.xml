@@ -4,46 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="Weekply and bookings">
-      <change beforePath="$PROJECT_DIR$/Guide/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Guide/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/banco.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/centro_costo.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/cliente.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/cliente_empresa.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/concepto_egreso.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/concepto_ingreso.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/concepto_traspaso.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/contacto_cliente.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/cotizacion.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/cuenta.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/dcotizacion.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/dreserva.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/espana/dreserva.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/egreso_operacion.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/empresa.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/fecha_limite_cliente.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/forma_pago.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/grupo.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/imagen.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/ingreso_operacion.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/monedero_cliente.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/ocupacion.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/pago_cliente.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/espana/pago_cliente.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/pago_proveedor.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/espana/pago_proveedor.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/proveedor.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/espana/proveedor.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/region_destino.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/reserva.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/espana/reserva.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/tarifa_grupal.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/tipo_cambio.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/traspaso.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/espana/usuario.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mexico/dreserva.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/mexico/dreserva.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bookings/booking_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/bookings/booking_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/fx_rates.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/fx_rates.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/validators.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/validators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/weekly/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/weekly/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/weekly/data_sheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/weekly/data_sheet.py" afterDir="false" />
+    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="Weekply and bookings, TAs">
+      <change beforePath="$PROJECT_DIR$/src/ta_monthly/report.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ta_monthly/report.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/~$Reporte_TAs_template.xlsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/create_ta_seed.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/create_ta_seed.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +22,7 @@
       </GitPushTagMode>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -151,11 +116,28 @@
       <option name="project" value="LOCAL" />
       <updated>1770915202779</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Weekply and bookings, TAs">
+      <option name="closed" value="true" />
+      <created>1771245198727</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1771245198727</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Weekply and bookings, TAs">
+      <option name="closed" value="true" />
+      <created>1771245208358</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1771245208358</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Weekply and bookings" />
-    <option name="LAST_COMMIT_MESSAGE" value="Weekply and bookings" />
+    <MESSAGE value="Weekply and bookings, TAs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Weekply and bookings, TAs" />
   </component>
 </project>

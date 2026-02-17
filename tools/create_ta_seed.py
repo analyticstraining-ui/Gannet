@@ -6,9 +6,8 @@ Uso:
     python3 tools/create_ta_seed.py
 
 Genera output/TA_seed.xlsx con:
-  - Hoja "DATA NEW": headers + datos enriquecidos (30 columnas)
-  - Formulas XLOOKUP para conversion FX (cols L, M, O, P, Q, AB, AC)
-  - FX lookup table en cols AO-AQ
+  - Hoja "DATA NEW": headers + datos enriquecidos (30 columnas, valores)
+  - FX lookup table en cols AO-AQ (referencia de tasas usadas)
   - Plantilla Corsario en cols AI-AM
 
 Despues de ejecutar:
@@ -29,10 +28,9 @@ from src.fx_rates import get_latest_fx, preload_fx_months
 from src.weekly.data_sheet import build_data_rows
 from src.ta_monthly.report import (
     load_plantilla_corsario, enrich_data_rows, _write_plantilla_block,
-    _write_fx_table, _get_formula, _cell,
+    _write_fx_table, _cell,
     FONT, FONT_HDR, DATA_NEW_HDR, HDR_BORDER, THIN_BORDER,
     DATE_FMT, PCT_FMT, NUM_FMT, DATA_NEW_COLS, DATA_NEW_WIDTHS,
-    FORMULA_KEYS,
 )
 
 from openpyxl import Workbook
@@ -66,9 +64,9 @@ def main():
 
     print(f"\n  Total: {len(all_data_rows)} filas")
 
-    # Enriquecer
+    # Enriquecer con FX rates actuales
     plantilla = load_plantilla_corsario()
-    enriched = enrich_data_rows(all_data_rows, plantilla)
+    enriched = enrich_data_rows(all_data_rows, plantilla, fx)
     print(f"  Plantilla Corsario: {len(plantilla)} TAs")
     print(f"  Datos enriquecidos: {len(enriched)} filas")
 
@@ -81,32 +79,22 @@ def main():
     for ci, (_, header) in enumerate(DATA_NEW_COLS, 1):
         _cell(ws, 1, ci, header, font=FONT_HDR, fill=DATA_NEW_HDR, border=HDR_BORDER)
 
-    # Datos con formulas XLOOKUP
+    # Datos (valores pre-calculados para compatibilidad con pivots)
     for ri, row_data in enumerate(enriched, 2):
         for ci, (key, _) in enumerate(DATA_NEW_COLS, 1):
-            if key in FORMULA_KEYS:
-                formula = _get_formula(key, ri)
-                cell = ws.cell(ri, ci, formula)
-                cell.font = FONT
-                cell.border = THIN_BORDER
-                if key == "Q":
-                    cell.number_format = PCT_FMT
-                else:
-                    cell.number_format = NUM_FMT
+            val = row_data.get(key)
+            if val is not None:
+                fmt = None
+                if key in ("D", "E", "F", "V", "AD_fecha_inc"):
+                    if isinstance(val, datetime):
+                        fmt = DATE_FMT
+                elif key in ("J", "L", "M", "N", "O", "P", "AB_renta_com", "AC_renta_com_usd"):
+                    fmt = NUM_FMT
+                elif key in ("Q", "AA_com"):
+                    fmt = PCT_FMT
+                _cell(ws, ri, ci, val, fmt=fmt, border=THIN_BORDER)
             else:
-                val = row_data.get(key)
-                if val is not None:
-                    fmt = None
-                    if key in ("D", "E", "F", "V", "AD_fecha_inc"):
-                        if isinstance(val, datetime):
-                            fmt = DATE_FMT
-                    elif key in ("J", "N"):
-                        fmt = NUM_FMT
-                    elif key == "AA_com":
-                        fmt = PCT_FMT
-                    _cell(ws, ri, ci, val, fmt=fmt, border=THIN_BORDER)
-                else:
-                    _cell(ws, ri, ci, None, border=THIN_BORDER)
+                _cell(ws, ri, ci, None, border=THIN_BORDER)
 
     # Anchos
     for i, w in enumerate(DATA_NEW_WIDTHS):
@@ -127,8 +115,7 @@ def main():
 
     print(f"\n  Archivo semilla generado: {output_path}")
     print(f"  DATA NEW: {len(enriched)} filas x {len(DATA_NEW_COLS)} columnas")
-    print(f"  Formulas XLOOKUP: L, M, O, P, Q, AB, AC")
-    print(f"  FX lookup table: cols AO-AQ")
+    print(f"  FX lookup table: cols AO-AQ (referencia de tasas usadas)")
 
     # Instrucciones
     print(f"""
