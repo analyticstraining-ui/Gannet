@@ -1,0 +1,40 @@
+name: Monthly TA Reports
+
+on:
+  schedule:
+    - cron: '0 6 10 * *'   # Día 10 de cada mes a las 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  monthly-ta:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate Individual TA Reports
+        run: |
+          echo "▶ Generando reportes individuales por TA"
+          python main.py --individual
+
+      - name: Generate TA Monthly Report
+        run: |
+          echo "▶ Generando reporte mensual consolidado TAs"
+          python main.py --ta-monthly
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-ta-reports
+          path: output/
+          retention-days: 90
+
