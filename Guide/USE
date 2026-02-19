@@ -1,55 +1,156 @@
-Cómo usarlo (tu workflow semanal)
+Como usarlo (tu workflow semanal)
 
   Paso 1 — Descargar datos de Corsario:
-  - Vas a Corsario SL → Configuración → Respaldar datos → Reservaciones
-  - Vas a Corsario LLC → lo mismo
+  - Vas a Corsario SL > Configuracion > Respaldar datos > Reservaciones
+  - Vas a Corsario LLC > lo mismo
   - Te bajas los CSVs
 
   Paso 2 — Poner los CSVs en data/:
-  - Los de España en data/espana/ (necesitas reserva.csv y dreserva.csv)
-  - Los de México en data/mexico/ (lo mismo)
+  - Los de Espana en data/espana/ (necesitas reserva.csv y dreserva.csv)
+  - Los de Mexico en data/mexico/ (lo mismo)
   - Los puedes sobreescribir directamente, no importa el nombre exacto
 
   Paso 3 — Ejecutar:
-  python3 main.py --week 7
+
+    # Todos los reportes (si no pones flags se generan todos)
+    python3 main.py
+
+    # Solo un tipo de reporte
+    python3 main.py --weekly
+    python3 main.py --bookings
+    python3 main.py --dashboard
+    python3 main.py --individual
+    python3 main.py --ta-monthly
+
+    # Combinaciones
+    python3 main.py --weekly --dashboard
+
+    # Semana especifica
+    python3 main.py --week 7
+
+    # Solo una entidad
+    python3 main.py --entity espana
+    python3 main.py --entity mexico
+
+    # Reportes individuales de un mes concreto
+    python3 main.py --individual --report-month 1
 
   Paso 4 — Recoger los archivos de output/:
-  - output/Week 7.xlsx → se lo mandas a Pedro (Weekly Report)
-  - output/espana/booking_window_7.xlsx → control interno SL
-  - output/mexico/booking_window_7.xlsx → control interno LLC
-  - Los errores que te salgan en consola → se los reportas a Madrid
 
-  Paso 5 — Abrir Week 7.xlsx en Microsoft Excel para que los pivots se refresquen automáticamente.
+    Weekly Report:
+    - output/Week_7_2026.xlsx -> se lo mandas a Pedro
+
+    Bookings (control interno):
+    - output/espana/Bookings_SL_7_2026.xlsx -> control Espana
+    - output/mexico/Bookings_LLC_7_2026.xlsx -> control Mexico
+    - output/Bookings_ALL_7_2026.xlsx -> combinado
+
+    Dashboard:
+    - output/Dashboard_7_2026.xlsx -> 10 hojas con graficos
+
+    Reportes individuales:
+    - output/Reportes_Individuales_Enero_2026/ -> un Excel por cada TA
+
+    Reporte mensual TAs:
+    - output/Reporte_TAs_Febrero_2026.xlsx -> reporte consolidado con pivots + SUMMARY
+
+  Paso 5 — Abrir en Excel:
+  - Los archivos con pivots (Weekly Report y Reporte TAs) hay que abrirlos en
+    Microsoft Excel para que los pivots se refresquen automaticamente.
+  - El Reporte TAs tiene una hoja SUMMARY con datos pre-calculados que funciona
+    en cualquier aplicacion (Apple Numbers, Google Sheets, LibreOffice).
+  - Los errores que te salgan en consola se los reportas a Madrid.
+
+  ---
 
   Flujo interno del script
 
-  python3 main.py --week 7
-          │
-          ▼
-    [1] Obtiene tipos de cambio (API o fallback)
-          │
-          ▼
-    [2] Bookings SL (control interno)
-          ├─ Lee data/espana/reserva.csv + dreserva.csv
-          ├─ Filtra canceladas, calcula rentabilidad
-          ├─ Genera booking_window_7.xlsx (solo SL)
-          └─ Valida errores → los imprime en consola
-          │
-          ▼
-    [2] Bookings LLC (control interno)
-          ├─ Lee data/mexico/reserva.csv + dreserva.csv
-          ├─ Lo mismo que arriba pero con LLC
-          └─ Genera booking_window_7.xlsx (solo LLC)
-          │
-          ▼
-    [3] Weekly Report combinado
-          ├─ Copia plantilla templates/Week 6.xlsx
-          ├─ Pega SL + LLC juntos en hoja DATA
-          ├─ Pega SL + LLC juntos en hoja DATA SERV (con fórmulas XLOOKUP)
-          ├─ Llena Booking Window 2026 (combinado, en USD)
-          ├─ Actualiza tipos de cambio en lookup table
-          ├─ Configura pivots para auto-refresh
-          └─ Guarda output/Week 7.xlsx
+  python3 main.py
+          |
+          v
+    [1] Obtiene tipos de cambio (API BCE Frankfurter)
+          |
+          v
+    [2] Carga datos por entidad (SL y LLC)
+          |- Lee data/espana/reserva.csv + dreserva.csv
+          |- Lee data/mexico/reserva.csv + dreserva.csv
+          |- Descarga tasas historicas de FX por fecha de reserva
+          |- Filtra canceladas, calcula rentabilidad
+          |- Genera Bookings por entidad (siempre)
+          |- Valida errores
+          |
+          v
+    [3] Genera reportes seleccionados
+          |
+          |-- --weekly: Weekly Report combinado
+          |     |- Copia plantilla templates/Week 6.xlsx
+          |     |- Escribe SL + LLC en hojas DATA y DATA SERV
+          |     |- Llena Booking Window 2026 (combinado, USD)
+          |     |- Calcula Diferencia % interanual
+          |     |- Hoja FX RATES con tasas diarias del BCE
+          |     |- Hoja ERRORES con errores detectados
+          |     |- Configura pivots para auto-refresh
+          |     '- Guarda output/Week_7_2026.xlsx
+          |
+          |-- --bookings: Bookings combinado
+          |     '- Guarda output/Bookings_ALL_7_2026.xlsx
+          |
+          |-- --dashboard: Dashboard con graficos
+          |     |- 10 hojas: Rendimiento, Evolucion, Rentabilidad,
+          |     |  Booking Window, Estacionalidad, Mix Monedas,
+          |     |  Rentabilidad por Servicio, Concentracion, LLC vs SL,
+          |     |  Tasa de Cierre
+          |     '- Guarda output/Dashboard_7_2026.xlsx
+          |
+          |-- --individual: Reportes individuales por TA
+          |     |- Un Excel por vendedor con sus ventas y datos
+          |     |- Filtrado por mes (default: mes anterior)
+          |     '- Guarda en output/Reportes_Individuales_Mes_Ano/
+          |
+          '-- --ta-monthly: Reporte mensual consolidado TAs
+                |- Copia plantilla Reporte_TAs_template.xlsx
+                |- Enriquece datos con plantilla corsario (oficina, LN, comision)
+                |- Escribe hoja DATA NEW con datos + FX
+                |- Actualiza filtros de 5 pivot tables
+                |- Force refresh (fullCalcOnLoad + cache cleared)
+                |- Crea hoja SUMMARY (pre-calculado, para Apple Numbers)
+                |- Hoja FX RATES con tasas diarias
+                '- Guarda output/Reporte_TAs_Mes_YYYY.xlsx
 
-  No detecta "la última upload" — simplemente lee los CSVs que estén en data/espana/ y data/mexico/ en ese momento. Cada vez que quieras generar un reporte nuevo, sobreescribes los CSVs con los datos nuevos y
-   ejecutas el script.
+  ---
+
+  Ejecucion automatica (GitHub Actions)
+
+  Hay 2 workflows configurados:
+
+  1. weekly_report.yml
+     - Genera: Weekly Report + Bookings + Dashboard
+     - Se puede lanzar manualmente desde GitHub > Actions
+
+  2. TA's_reports.yml
+     - Genera: Reporte mensual TAs + Reportes individuales
+     - Se puede lanzar manualmente desde GitHub > Actions
+
+  Para usarlos:
+  1. Subir los CSVs nuevos al repo (git push)
+  2. Ir a GitHub > Actions > Run workflow
+  3. Descargar el output desde Artifacts
+
+  ---
+
+  Notas importantes
+
+  - No detecta "la ultima upload" — simplemente lee los CSVs que esten en
+    data/espana/ y data/mexico/ en ese momento. Cada vez que quieras generar
+    un reporte nuevo, sobreescribes los CSVs y ejecutas el script.
+
+  - Los tipos de cambio son historicos: cada reserva usa la tasa del dia exacto
+    de su creacion (API BCE). Para fines de semana usa el ultimo dia laborable.
+
+  - El Reporte TAs tiene 5 mecanismos para forzar refresh de pivots en Excel
+    Windows: fullCalcOnLoad, refreshOnLoad, recordCount=0, rango fuente
+    actualizado, y registros cacheados vaciados.
+
+  - La hoja SUMMARY del Reporte TAs es un fallback que funciona en cualquier
+    app (Numbers, Google Sheets) porque tiene valores estaticos calculados
+    en Python, no depende de pivot tables.
