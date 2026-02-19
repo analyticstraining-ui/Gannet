@@ -1,38 +1,77 @@
-  Gannet/
-  ├── main.py                  ← Lo que ejecutas: python3 main.py --week 7
-  ├── config.py                ← Configuración (rutas, monedas, FX fallback)
-  ├── requirements.txt         ← Dependencias: pandas, openpyxl, requests
-  ├── .gitignore               ← Ignora data/, output/, templates/ en git
-  │
-  ├── src/                     ← Código organizado en módulos
-  │   ├── data_loader.py       ← Lee los CSVs y filtra canceladas
-  │   ├── fx_rates.py          ← Llama API de tipos de cambio (o usa fallback)
-  │   ├── validators.py        ← Detecta errores (montos negativos, % altos, etc.)
-  │   │
-  │   ├── weekly/              ← Todo lo del Weekly Report
-  │   │   ├── data_sheet.py    ← Construye las filas de la hoja DATA
-  │   │   ├── data_serv_sheet.py ← Construye las filas de DATA SERV
-  │   │   └── excel_writer.py  ← Copia template, escribe datos, fórmulas, pivots
-  │   │
-  │   └── bookings/            ← Todo lo del Booking Window
-  │       └── booking_window.py ← Matriz semana x mes en USD + export Excel
-  │
-  ├── data/                    ← TÚ PONES LOS CSVs AQUÍ
-  │   ├── espana/              ← CSVs de Corsario SL
-  │   │   ├── reserva.csv
-  │   │   ├── dreserva.csv
-  │   │   ├── proveedor.csv
-  │   │   └── usuario.csv
-  │   └── mexico/              ← CSVs de Corsario LLC
-  │       ├── reserva.csv      (o "reserva (1).csv", lo detecta solo)
-  │       └── dreserva.csv
-  │
-  ├── templates/
-  │   └── Week 6.xlsx          ← Plantilla base (NO se modifica, solo se copia)
-  │
-  └── output/                  ← AQUÍ SALEN LOS ARCHIVOS GENERADOS
-      ├── Week 7.xlsx          ← Weekly Report combinado (SL + LLC)
-      ├── espana/
-      │   └── booking_window_7.xlsx  ← Booking Window solo SL
-      └── mexico/
-          └── booking_window_7.xlsx  ← Booking Window solo LLC
+Gannet/
+├── main.py                      <- Lo que ejecutas: python3 main.py --week 7
+├── config.py                    <- Configuracion (rutas, monedas, FX fallback, meses en espanol)
+├── requirements.txt             <- Dependencias: pandas, openpyxl, requests
+├── .gitignore                   <- Ignora output/, __pycache__/, .DS_Store
+│
+├── src/                         <- Codigo organizado en modulos
+│   ├── data_loader.py           <- Lee los CSVs y filtra canceladas
+│   ├── fx_rates.py              <- Tipos de cambio historicos y actuales (API BCE Frankfurter)
+│   ├── validators.py            <- Detecta errores (montos negativos, % altos, etc.)
+│   │
+│   ├── weekly/                  <- Todo lo del Weekly Report
+│   │   ├── data_sheet.py        <- Construye las filas de la hoja DATA (FX historico)
+│   │   ├── data_serv_sheet.py   <- Construye las filas de DATA SERV
+│   │   ├── excel_writer.py      <- Copia template, escribe datos, formulas XLOOKUP, pivots
+│   │   ├── diferencia.py        <- Calcula Diferencia % interanual en Weekly SL y LLC
+│   │   ├── fx_sheet.py          <- Hoja FX RATES con tasas diarias del mes (BCE)
+│   │   └── errores_sheet.py     <- Hoja ERRORES con errores detectados en datos
+│   │
+│   ├── bookings/                <- Bookings por entidad y combinado
+│   │   ├── booking_window.py    <- Matriz semana x mes en USD + export dentro del Weekly
+│   │   └── export_bookings.py   <- Export Excel independiente (25 columnas por reserva)
+│   │
+│   ├── dashboard/               <- Dashboard con 10 hojas de analisis
+│   │   └── dashboard.py         <- Rendimiento, evolucion, rentabilidad, estacionalidad, etc.
+│   │
+│   ├── individual/              <- Reportes individuales por Travel Advisor
+│   │   └── reports.py           <- Un Excel por vendedor con sus ventas y datos
+│   │
+│   └── ta_monthly/              <- Reporte Mensual Consolidado TAs
+│       └── report.py            <- Pivots + SUMMARY (pre-calculado) + force refresh Win/Mac
+│
+├── data/                        <- TU PONES LOS CSVs AQUI
+│   ├── espana/                  <- CSVs de Corsario SL
+│   │   ├── reserva.csv          <- Reservaciones (requerido)
+│   │   ├── dreserva.csv         <- Detalle de reservaciones (requerido)
+│   │   └── (otros CSVs de Corsario que no se usan directamente)
+│   └── mexico/                  <- CSVs de Corsario LLC
+│       ├── reserva.csv          <- (o "reserva (1).csv", lo detecta solo)
+│       ├── dreserva.csv
+│       └── (otros CSVs de Corsario)
+│
+├── templates/                   <- Plantillas base (NO se modifican, solo se copian)
+│   ├── Week 6.xlsx              <- Template del Weekly Report (pivots, lookup tables)
+│   ├── Reporte_TAs_template.xlsx <- Template del reporte mensual (5 pivots)
+│   ├── Reporte indicidual.xlsx  <- Template de reportes individuales
+│   └── plantilla_corsario.csv   <- Datos de TAs: usuario, linea negocio, comision, oficina
+│
+├── tools/
+│   └── create_ta_seed.py        <- Herramienta para crear el template de TAs desde cero
+│
+├── Guide/                       <- Documentacion del proyecto
+│   ├── README.md                <- Resumen general y uso
+│   ├── Structure                <- Este archivo (arbol de directorios)
+│   ├── USE                      <- Guia practica paso a paso
+│   └── Explicacion              <- Explicacion detallada de cada archivo de codigo
+│
+├── .github/
+│   └── workflows/
+│       ├── weekly_report.yml    <- GitHub Actions: genera Weekly + Bookings + Dashboard
+│       └── TA's_reports.yml     <- GitHub Actions: genera Reporte TAs + Individuales
+│
+└── output/                      <- AQUI SALEN LOS ARCHIVOS GENERADOS
+    ├── Week_7_2026.xlsx                     <- Weekly Report combinado (SL + LLC)
+    ├── Dashboard_7_2026.xlsx                <- Dashboard con graficos
+    ├── Bookings_ALL_7_2026.xlsx             <- Bookings combinado
+    ├── Reporte_TAs_Febrero_2026.xlsx        <- Reporte mensual TAs (con SUMMARY)
+    ├── espana/
+    │   └── Bookings_SL_7_2026.xlsx          <- Bookings solo Espana
+    ├── mexico/
+    │   └── Bookings_LLC_7_2026.xlsx         <- Bookings solo Mexico
+    └── Reportes_Individuales_Enero_2026/    <- Carpeta con reportes por TA
+        ├── ClaudiaF/
+        │   └── ClaudiaF_Enero_2026.xlsx
+        ├── MariaJose/
+        │   └── MariaJose_Enero_2026.xlsx
+        └── ... (un directorio por cada TA)

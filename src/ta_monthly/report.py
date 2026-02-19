@@ -17,6 +17,7 @@ from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.workbook.properties import CalcProperties
 
 from config import BASE_DIR, MONTH_NAMES_ES, TA_TEMPLATE_PATH
 from src.fx_rates import get_current_month_daily_rates
@@ -910,6 +911,91 @@ def _update_pivot_filters(wb, month, year, month_name):
     return updated
 
 
+# ── Force pivot refresh (Win + Mac) ──────────────────────────────────────
+
+def _force_pivot_refresh(wb, n_data_rows):
+    """Fuerza el recalculo de pivot tables y formulas al abrir el archivo.
+
+    Mecanismos:
+      1. fullCalcOnLoad=True  → recalcula todas las formulas (XLOOKUP, etc.)
+      2. refreshOnLoad=True   → pide a Excel que refresque cada pivot cache
+      3. recordCount=0        → provoca un mismatch que fuerza rebuild del cache
+      4. Rango fuente actualizado → garantiza que el cache cubra todos los datos
+      5. Registros cacheados vacios → evita que Windows muestre datos antiguos
+    """
+    # 1. fullCalcOnLoad para formulas
+    if wb.calculation is None:
+        wb.calculation = CalcProperties()
+    wb.calculation.fullCalcOnLoad = True
+
+    # 2-5. Procesar cada pivot cache (sin repetir caches compartidos)
+    last_row = n_data_rows + 1  # +1 por header
+    seen = set()
+
+    for ws in wb.worksheets:
+        for pt in getattr(ws, '_pivots', []):
+            cache = pt.cache
+            cid = id(cache)
+            if cid in seen:
+                continue
+            seen.add(cid)
+
+            # refreshOnLoad
+            cache.refreshOnLoad = True
+
+            # recordCount=0 fuerza a Excel a detectar inconsistencia
+            cache.recordCount = 0
+
+            # Actualizar rango fuente del cache para cubrir todos los datos
+            try:
+                ws_src = cache.source.worksheetSource
+                if ws_src and ws_src.ref:
+                    parts = ws_src.ref.split(':')
+                    if len(parts) == 2:
+                        end_col = ''.join(c for c in parts[1] if c.isalpha())
+                        ws_src.ref = f"A1:{end_col}{last_row}"
+            except (AttributeError, TypeError):
+                pass
+
+            # Vaciar registros cacheados para que no haya datos antiguos
+            try:
+                if cache.records is not None:
+                    cache.records.r = []
+            except (AttributeError, TypeError):
+                pass
+
+    return len(seen)
+
+
+# ── SUMMARY sheet (fallback para Apple Numbers) ─────────────────────────
+
+def _write_summary_sheet(wb, enriched, year, month, month_name, fecha_inc_lookup):
+    """Crea una hoja SUMMARY con todos los reportes pre-calculados en Python.
+
+    Esta hoja muestra datos correctos en CUALQUIER aplicacion (Excel Win,
+    Excel Mac, Apple Numbers, Google Sheets) porque los valores son estaticos,
+    no dependen de pivot tables.
+    """
+    if "SUMMARY" in wb.sheetnames:
+        del wb["SUMMARY"]
+    ws = wb.create_sheet("SUMMARY")
+
+    # Report 1 (mes actual) + Report 2 (YTD) lado a lado
+    next_row = _write_report_1_2(ws, enriched, year, month, month_name)
+
+    # Report 3 – Venta por Mes de Inicio
+    next_row = _write_report_3(ws, enriched, year, next_row + 2)
+
+    # Report 4 – Venta por Mes (con Fecha Incorporacion)
+    next_row = _write_report_4(ws, enriched, year, next_row + 2, fecha_inc_lookup)
+
+    # Anchos de columna
+    ws.column_dimensions['A'].width = 22
+    ws.column_dimensions['B'].width = 22
+    for col in range(3, 16):
+        ws.column_dimensions[get_column_letter(col)].width = 16
+
+
 # ── Hoja FX RATES ────────────────────────────────────────────────────────
 
 _FX_CURRENCIES = ["USD", "GBP", "CHF", "JPY", "MXN"]
@@ -1060,6 +1146,24 @@ def generate_ta_monthly_report(data_rows, output_dir, fx, year=None, month=None)
     # Actualizar filtros de tablas dinamicas
     n_updated = _update_pivot_filters(wb, month, year, month_name)
     print(f"  Pivot tables actualizados: {n_updated} (refreshOnLoad=True)")
+
+    # Forzar recalculo al abrir (pivots + formulas) — fix para Excel Windows
+    n_caches = _force_pivot_refresh(wb, len(enriched))
+    print(f"  Force refresh: {n_caches} caches (fullCalcOnLoad + records cleared)")
+
+    # Hoja SUMMARY con datos pre-calculados (compatible con Apple Numbers)
+    fecha_inc_lookup = _build_fecha_inc_lookup(enriched)
+    _write_summary_sheet(wb, enriched, year, month, month_name, fecha_inc_lookup)
+    print(f"  Hoja SUMMARY creada (datos pre-calculados, compatible Numbers)")
+
+    # Ordenar hojas: reportes → SUMMARY → DATA NEW → FX RATES
+    desired_order = [
+        f"Reportes TA {month_name}", _SECONDARY_SHEET,
+        "SUMMARY", "DATA NEW", "FX RATES",
+    ]
+    for i, name in enumerate(desired_order):
+        if name in wb.sheetnames:
+            wb.move_sheet(name, offset=i - wb.sheetnames.index(name))
 
     # Guardar
     wb.save(filepath)

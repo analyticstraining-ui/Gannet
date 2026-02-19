@@ -1,0 +1,52 @@
+name: Upload Reports to OneDrive
+
+on:
+  workflow_run:
+    workflows: ["Monthly TA Reports", "Weekly Report"]
+    types:
+      - completed
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./files-to-upload
+
+      - name: Get OneDrive token
+        id: token
+        run: |
+          TOKEN=$(curl -s -X POST \
+            "https://login.microsoftonline.com/${{ secrets.ONEDRIVE_TENANT_ID }}/oauth2/v2.0/token" \
+            -d "client_id=${{ secrets.ONEDRIVE_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.ONEDRIVE_CLIENT_SECRET }}" \
+            -d "scope=https://graph.microsoft.com/.default" \
+            -d "grant_type=client_credentials" | jq -r '.access_token')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Upload files to SharePoint
+        run: |
+          DRIVE_ID=$(curl -s \
+            "https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives" \
+            -H "Authorization: Bearer ${{ steps.token.outputs.token }}" | jq -r '.value[0].id')
+          
+          echo "Drive ID: $DRIVE_ID"
+          
+          find ./files-to-upload -type f | while read file; do
+            relative_path="${file#./files-to-upload/monthly-ta-reports/}"
+            
+            echo "Subiendo: $relative_path"
+            
+            curl -X PUT \
+              "https://graph.microsoft.com/v1.0/drives/$DRIVE_ID/root:/Corsario/Reports/$relative_path:/content" \
+              -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary "@$file"
+          done
+

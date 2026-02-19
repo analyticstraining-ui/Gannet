@@ -1,19 +1,19 @@
-config.py — El archivo de configuración                   
-                                                                                                                                                                                                                
-  Este archivo no hace nada por sí solo. Solo define constantes que los demás archivos importan. Es como un "diccionario central" para que si algo cambia (una ruta, una moneda, etc.) solo lo cambies aquí.
+config.py — El archivo de configuracion
 
-  Qué contiene:
+  Este archivo no hace nada por si solo. Solo define constantes que los demas archivos importan. Es como un "diccionario central" para que si algo cambia (una ruta, una moneda, etc.) solo lo cambies aqui.
 
-  - BASE_DIR (línea 7): Detecta automáticamente dónde está la carpeta del proyecto. Todos los paths se construyen a partir de aquí, así que no importa dónde tengas la carpeta Gannet en tu ordenador.
-  - ENTITIES (líneas 10-23): Un diccionario con la config de cada entidad. Cada una tiene:
+  Que contiene:
+
+  - BASE_DIR: Detecta automaticamente donde esta la carpeta del proyecto. Todos los paths se construyen a partir de aqui.
+  - ENTITIES: Un diccionario con la config de cada entidad (SL y LLC). Cada una tiene:
     - company: "SL" o "LLC" — lo que se escribe en la columna A del Excel
     - label: Nombre bonito para los mensajes de consola
-    - data_dir: Dónde buscar los CSVs de esa entidad
-    - output_dir: Dónde guardar el booking window de esa entidad
-  - TEMPLATE_PATH (línea 25): Ruta a la plantilla Week 6.xlsx. Esta plantilla NUNCA se modifica — el script la copia y trabaja sobre la copia.
-  - FALLBACK_FX (líneas 28-36): Tipos de cambio de emergencia. Si la API de tipos de cambio falla (sin internet, servidor caído, etc.), usa estos valores. Incluye "GPB" porque en los datos de Corsario hay ese
-   typo (debería ser GBP).
-  - MONTH_NAMES_ES (líneas 39-43): Mapa de número de mes a nombre en español. Se usa para la columna W de DATA ("mes 45 dias fin") y para los headers del booking window.
+    - data_dir: Donde buscar los CSVs de esa entidad
+    - output_dir: Donde guardar los archivos de esa entidad
+  - TEMPLATE_PATH: Ruta a la plantilla Week 6.xlsx (Weekly Report).
+  - TA_TEMPLATE_PATH: Ruta a la plantilla Reporte_TAs_template.xlsx (Reporte mensual TAs).
+  - FALLBACK_FX: Tipos de cambio de emergencia. Si la API falla, usa estos valores. Incluye "GPB" porque en los datos de Corsario hay ese typo (deberia ser GBP).
+  - MONTH_NAMES_ES: Mapa de numero de mes a nombre en espanol. Se usa para nombres de hojas, headers, y nombres de archivos.
 
   ---
   src/data_loader.py — Lee los CSVs de Corsario
@@ -22,270 +22,268 @@ config.py — El archivo de configuración
 
   Funciones:
 
-  - _find_csv(data_dir, base_name) (líneas 11-30): Función interna que busca un CSV flexible. Primero intenta el nombre exacto (reserva.csv). Si no lo encuentra, busca variantes (reserva (1).csv,
-  reserva_backup.csv, etc.). Esto es porque Corsario a veces te descarga el archivo con nombres raros como reserva (1).csv. No tienes que renombrarlo — lo encuentra solo.
-  - load_reserva(data_dir) (líneas 33-46): Lee el CSV de reservas. Hace exactamente lo que tú harías a mano:
+  - _find_csv(data_dir, base_name): Funcion interna que busca un CSV flexible. Primero intenta el nombre exacto (reserva.csv). Si no lo encuentra, busca variantes (reserva (1).csv, reserva_backup.csv, etc.). Esto es porque Corsario a veces te descarga el archivo con nombres raros. No tienes que renombrarlo.
+  - load_reserva(data_dir): Lee el CSV de reservas.
     a. Abre el CSV con encoding latin-1 (porque Corsario usa acentos)
     b. Filtra la columna cancelada dejando solo las que tienen 0 (no canceladas)
     c. Ordena por folio de A a Z
-    d. Te dice cuántas leyó y cuántas quedaron después de filtrar
-  - load_dreserva(data_dir) (líneas 49-58): Lee el CSV de detalle de reservas. Solo lo lee, sin filtrar nada (el filtrado se hace después, cuando se cruza con las reservas activas).
-  - compute_rentabilidad(dreserva_df) (líneas 61-66): Esto es equivalente a cuando tú creas una pivot table en dreserva con el folio en filas y monto_comision en valores como SUM. Agrupa por folio y suma la
-  comisión. El resultado es una tabla de 2 columnas: folio | rentabilidad total. Detecta automáticamente si la columna se llama monto_comision o comision_monto.
+  - load_dreserva(data_dir): Lee el CSV de detalle de reservas. Solo lo lee, sin filtrar nada.
+  - compute_rentabilidad(dreserva_df): Agrupa dreserva por folio y suma la comision. Detecta automaticamente si la columna se llama monto_comision o comision_monto.
 
   ---
-  src/fx_rates.py — Tipos de cambio del día
+  src/fx_rates.py — Tipos de cambio historicos y actuales
 
-  Función get_fx_rates() (líneas 8-41):
+  Usa la API de Frankfurter (datos del BCE, gratuita, sin API key) para obtener tipos de cambio.
 
-  Llama a la API gratuita exchangerate-api.com y obtiene los tipos de cambio del día con EUR como base. Después calcula para cada moneda (EUR, USD, GBP, GPB, CHF, JPY, MXN):
-  - Cuántos EUR vale 1 unidad de esa moneda
-  - Cuántos USD vale 1 unidad de esa moneda
+  Funciones principales:
 
-  Por ejemplo: si 1 EUR = 1.19 USD, entonces:
-  - USD→EUR = 1/1.19 = 0.84
-  - USD→USD = 1.0
-  - GBP→EUR = 1/0.87 = 1.15
-  - GBP→USD = 1.15 * 1.19 = 1.37
+  - get_latest_fx(): Obtiene la tasa mas reciente del BCE. Se usa para la lookup table del Weekly y para el Reporte TAs.
+  - get_historical_fx(fecha): Obtiene la tasa del dia exacto de una fecha. Si es fin de semana/festivo, retrocede al ultimo dia laborable. Cada reserva usa la tasa de su fecha de creacion.
+  - preload_fx_months(dates): Pre-descarga las tasas de todos los meses que aparecen en las fechas de reserva. Esto evita hacer una llamada API por cada reserva.
+  - get_current_month_daily_rates(): Descarga las tasas de cada dia laborable del mes actual. Se usa para la hoja FX RATES.
 
-  Si la API falla (sin internet, timeout, error del servidor), no se rompe. Simplemente usa los FALLBACK_FX de config.py y te avisa con un "⚠".
+  Cache interno:
+  - _fx_cache: Diccionario {date: {moneda: {EUR, USD}}} con todas las tasas descargadas.
+  - _downloaded_months: Set de (year, month) ya descargados para no repetir llamadas.
+  - Si la API falla, usa FALLBACK_FX de config.py.
 
-  Se llama una sola vez al principio y se reutiliza para España y México.
+  Monedas soportadas: EUR, USD, GBP (y GPB como alias), CHF, JPY, MXN.
 
   ---
   src/validators.py — Detector de errores
 
-  Función detect_errors(reserva_df, rentabilidad_df) (líneas 8-45):
+  Funcion detect_errors(reserva_df, rentabilidad_df):
 
-  Recorre cada reserva activa y busca cosas raras. Esto es lo que después le reportas al equipo de Madrid. Los checks que hace:
-  ┌────────────────────────┬────────────────────────────────────────────────────────────────────────────┐
-  │         Check          │                               Qué significa                                │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ total < 0              │ El cliente tiene monto negativo — algo está mal en Corsario                │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ rent < 0               │ La comisión es negativa — el proveedor cobra más de lo que paga el cliente │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ rent/total > 50%       │ La rentabilidad es sospechosamente alta — probablemente un error de carga  │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ total == 0 y rent != 0 │ No hay venta pero sí comisión — no tiene sentido                           │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ Moneda desconocida     │ Se encontró una moneda que no es EUR/USD/GBP/CHF/MXN/JPY                   │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ fecha_inicio vacía     │ La reserva no tiene fecha de inicio del viaje                              │
-  ├────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-  │ fecha_fin vacía        │ La reserva no tiene fecha de fin del viaje                                 │
-  └────────────────────────┴────────────────────────────────────────────────────────────────────────────┘
-  Devuelve una lista de strings con los errores encontrados. Si no hay errores, devuelve lista vacía.
+  Recorre cada reserva activa y busca cosas raras. Los errores se imprimen en consola y se escriben en la hoja ERRORES del Weekly Report.
+
+  Checks que hace:
+  - total < 0: Monto negativo — algo esta mal en Corsario
+  - rent < 0: Comision negativa
+  - rent/total > 50%: Rentabilidad sospechosamente alta — probablemente error de carga
+  - total == 0 y rent != 0: No hay venta pero si comision
+  - Moneda desconocida (fuera de EUR/USD/GBP/CHF/MXN/JPY)
+  - fecha_inicio vacia
+  - fecha_fin vacia
 
   ---
   src/weekly/data_sheet.py — Construye la hoja DATA
 
-  Función build_data_rows(reserva_df, rentabilidad_df, fx, company) (líneas 24-87):
+  Funcion build_data_rows(reserva_df, rentabilidad_df, company):
 
-  Toma las reservas filtradas, les cruza la rentabilidad (el resultado de la pivot de dreserva), y construye una fila por reserva con las 24 columnas de la hoja DATA:
-  ┌───────────────────────┬────────────────────────────────┬───────────────────────────────────┐
-  │        Columna        │            Qué pone            │           De dónde sale           │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ A: Compania           │ "SL" o "LLC"                   │ Parámetro company                 │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ B: folio              │ Número de folio                │ reserva.folio                     │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ C: cerrada            │ 0 o 1                          │ reserva.cerrada                   │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ D: fecha              │ Fecha de creación              │ reserva.fecha                     │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ E: fecha_inicio       │ Fecha de inicio del viaje      │ reserva.fecha_inicio              │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ F: fecha_fin          │ Fecha de fin del viaje         │ reserva.fecha_fin                 │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ G: vendedor           │ Nombre del vendedor            │ reserva.vendedor                  │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ H: Semana             │ Número de semana ISO           │ Calculado de la fecha (D)         │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ I: usuarios_invitados │ Usuarios invitados             │ reserva.usuarios_invitados        │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ J: total_cliente      │ Monto en moneda original       │ reserva.total_cliente             │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ K: moneda             │ EUR, USD, MXN, etc.            │ reserva.moneda                    │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ L: Total Venta EUR    │ J * tipo de cambio a EUR       │ Calculado: total_cliente * fx_eur │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ M: Total Venta USD    │ J * tipo de cambio a USD       │ Calculado: total_cliente * fx_usd │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ N: Rentabilidad       │ Comisión en moneda original    │ De la pivot de dreserva           │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ O: Rentabilidad EUR   │ N * tipo de cambio a EUR       │ Calculado                         │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ P: Rentabilidad USD   │ N * tipo de cambio a USD       │ Calculado                         │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ Q: % Rentabilidad     │ N / J                          │ Calculado (ej: 0.15 = 15%)        │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ R: Mes                │ Mes de la fecha de creación    │ Calculado de D                    │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ S: Ano                │ Año de la fecha de creación    │ Calculado de D                    │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ T: Mes Inicio         │ Mes del inicio del viaje       │ Calculado de E                    │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ U: Ano Inicio         │ Año del inicio del viaje       │ Calculado de E                    │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ V: Fecha 45 dias fin  │ fecha_fin + 45 días            │ Calculado                         │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ W: mes 45 dias fin    │ Nombre del mes de V en español │ Calculado (ej: "marzo")           │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ X: Ano 45 dias fin    │ Año de V                       │ Calculado                         │
-  ├───────────────────────┼────────────────────────────────┼───────────────────────────────────┤
-  │ Z: Observaciones      │ Notas/comentarios              │ reserva.observaciones             │
-  └───────────────────────┴────────────────────────────────┴───────────────────────────────────┘
-  La función _parse_date (líneas 12-21) convierte fechas que pueden venir como texto o como datetime — los CSVs de Corsario no siempre son consistentes.
+  Toma las reservas filtradas, les cruza la rentabilidad, y construye una fila por reserva. Usa tipos de cambio historicos: cada reserva se convierte con la tasa del dia de su fecha de creacion.
+
+  Columnas (A-Z):
+  - A: Compania ("SL" o "LLC")
+  - B: folio
+  - C: cerrada (0 o 1)
+  - D: fecha (fecha de creacion)
+  - E: fecha_inicio, F: fecha_fin
+  - G: vendedor
+  - H: Semana (numero de semana ISO)
+  - I: usuarios_invitados
+  - J: total_cliente (moneda original)
+  - K: moneda (EUR, USD, MXN, etc.)
+  - L: Total Venta EUR (J * FX historico)
+  - M: Total Venta USD (J * FX historico)
+  - N: Rentabilidad (moneda original)
+  - O: Rentabilidad EUR (N * FX historico)
+  - P: Rentabilidad USD (N * FX historico)
+  - Q: % Rentabilidad (N / J)
+  - R: Mes, S: Ano (de D)
+  - T: Mes Inicio, U: Ano Inicio (de E)
+  - V: Fecha 45 dias fin (F + 45 dias)
+  - W: mes 45 dias fin (nombre en espanol)
+  - X: Ano 45 dias fin
+  - Z: Observaciones
 
   ---
   src/weekly/data_serv_sheet.py — Construye la hoja DATA SERV
 
-  Función build_serv_rows(dreserva_df, reserva_df, company) (líneas 22-62):
+  Funcion build_serv_rows(dreserva_df, reserva_df, company):
 
-  Solo prepara los valores estáticos (los que vienen directamente del CSV). Las fórmulas XLOOKUP se escriben después en excel_writer.py.
+  Filtra dreserva para quedarse solo con folios activos. Construye valores estaticos por servicio. Las formulas XLOOKUP se escriben despues en excel_writer.py.
 
-  Primero filtra dreserva para quedarse solo con los folios que están en reservas activas (no canceladas). Luego construye una fila por cada línea de servicio:
-  ┌────────────────────┬───────────────────────────────┐
-  │      Columna       │           Qué pone            │
-  ├────────────────────┼───────────────────────────────┤
-  │ B: Compania        │ "SL" o "LLC"                  │
-  ├────────────────────┼───────────────────────────────┤
-  │ C: folio           │ Número de folio               │
-  ├────────────────────┼───────────────────────────────┤
-  │ E: proveedor       │ Código del proveedor (número) │
-  ├────────────────────┼───────────────────────────────┤
-  │ F: descripcion     │ Descripción del servicio      │
-  ├────────────────────┼───────────────────────────────┤
-  │ G: inicio_estancia │ Fecha de check-in             │
-  ├────────────────────┼───────────────────────────────┤
-  │ H: fin_estancia    │ Fecha de check-out            │
-  ├────────────────────┼───────────────────────────────┤
-  │ I: tipo_servicio   │ Código (PKT, VLO, HTL, etc.)  │
-  ├────────────────────┼───────────────────────────────┤
-  │ K: moneda          │ Moneda del servicio           │
-  ├────────────────────┼───────────────────────────────┤
-  │ L: subtotal        │ Monto del servicio            │
-  ├────────────────────┼───────────────────────────────┤
-  │ O: monto_comision  │ Comisión del servicio         │
-  └────────────────────┴───────────────────────────────┘
-  Las demás columnas (A, D, J, M, N, P, Q, R, S, T, U, V) son fórmulas que se escriben en el siguiente archivo.
+  Columnas estaticas: B (compania), C (folio), E (proveedor), F (descripcion), G (inicio_estancia), H (fin_estancia), I (tipo_servicio), K (moneda), L (subtotal), O (monto_comision).
 
   ---
-  src/weekly/excel_writer.py — Escribe el Excel final
+  src/weekly/excel_writer.py — Escribe el Excel final del Weekly
 
-  Este es el archivo más complejo. Hace el equivalente a todo lo que harías a mano en Excel.
+  Funcion generate_weekly_excel(...):
 
-  Función generate_weekly_excel(...) (líneas 11-182):
+  Paso 1: Copia templates/Week 6.xlsx -> output/Week_N_YYYY.xlsx
 
-  Paso 1: Copiar la plantilla (línea 25-26)
+  Paso 2: Escribe hoja DATA
+  - Limpia filas existentes (columnas A-AA), deja headers en fila 1
+  - Escribe data_rows fila por fila
+  - Formatea: fechas como MM-DD-YY, montos como enteros, porcentajes como 0.00%
 
-  Copia templates/Week 6.xlsx → output/Week 7.xlsx. La plantilla original NUNCA se toca. Todo lo que viene después se hace sobre la copia.
+  Paso 3: Escribe hoja DATA SERV
+  - Limpia columnas A-V (preserva lookup tables en Y-BO)
+  - Escribe valores estaticos
+  - Escribe formulas XLOOKUP para cada fila:
+    - A: Oficina = XLOOKUP(vendedor -> pais)
+    - D: vendedor = XLOOKUP(folio -> vendedor) — tabla diferente SL vs LLC
+    - J: tipo servicio = XLOOKUP(codigo -> nombre)
+    - M, N: Subtotal EUR/USD = subtotal * XLOOKUP(moneda -> tasa)
+    - P, Q: Comision EUR/USD
+    - R: Nombre proveedor (tabla diferente SL vs LLC)
+    - S: Pais proveedor
+    - T: Semana, U: Ano, V: Rentabilidad
 
-  Paso 2: Escribir hoja DATA (líneas 28-62)
+  Paso 4: Actualiza tipos de cambio en lookup table (AM-AO)
 
-  1. Limpia las filas 2 en adelante (columnas A-AA), dejando los headers en fila 1
-  2. Escribe los datos de data_rows fila por fila
-  3. Formatea: fechas como MM-DD-YY, montos como enteros (0), porcentajes como 0.00%
+  Paso 5: Configura pivots para auto-refresh (refreshOnLoad + rango actualizado)
 
-  Paso 3: Escribir hoja DATA SERV (líneas 64-128)
+  ---
+  src/weekly/diferencia.py — Calcula Diferencia % interanual
 
-  1. Limpia columnas A-V de fila 2 en adelante. Las columnas Y-BO (lookup tables de proveedores, usuarios, tipos de servicio, etc.) NO se tocan — vienen de la plantilla.
-  2. Escribe valores estáticos (B, C, E-I, K, L, O)
-  3. Escribe fórmulas XLOOKUP para cada fila. Aquí es donde es diferente para SL y LLC:
-  ┌─────────────────────┬─────────────────────┬───────────────────┬──────────────────────────────────────────────────────────┐
-  │       Columna       │     Fórmula SL      │    Fórmula LLC    │                         Qué hace                         │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ A: Oficina          │ =XLOOKUP(D,BN,BO)   │ Igual             │ Busca el país del vendedor                               │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ D: vendedor         │ =XLOOKUP(C,BC,BD)   │ =XLOOKUP(C,BH,BI) │ Busca vendedor por folio (tabla diferente por entidad)   │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ J: tipo servicio    │ =XLOOKUP(I,AS,AU)   │ Igual             │ Convierte código (PKT) a nombre (DMC)                    │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ M: Subtotal EUR     │ =L*XLOOKUP(K,AM,AN) │ Igual             │ subtotal * tipo de cambio EUR                            │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ N: Subtotal USD     │ =L*XLOOKUP(K,AM,AO) │ Igual             │ subtotal * tipo de cambio USD                            │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ P: Comision EUR     │ =O*XLOOKUP(K,AM,AN) │ Igual             │ comisión * tipo de cambio EUR                            │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ Q: Comision USD     │ =O*XLOOKUP(K,AM,AO) │ Igual             │ comisión * tipo de cambio USD                            │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ R: Nombre proveedor │ =XLOOKUP(E,Y,Z)     │ =XLOOKUP(E,AF,AG) │ Busca nombre del proveedor (tabla diferente por entidad) │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ S: País             │ =XLOOKUP(E,Y,AB)    │ =XLOOKUP(E,AF,AI) │ Busca país del proveedor (tabla diferente por entidad)   │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ T: Semana           │ =WEEKNUM(G)         │ Igual             │ Semana del inicio de estancia                            │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ U: Año              │ =YEAR(G)            │ Igual             │ Año del inicio de estancia                               │
-  ├─────────────────────┼─────────────────────┼───────────────────┼──────────────────────────────────────────────────────────┤
-  │ V: Rentabilidad     │ =IFERROR(Q/N,"0")   │ Igual             │ Comisión USD / Subtotal USD                              │
-  └─────────────────────┴─────────────────────┴───────────────────┴──────────────────────────────────────────────────────────┘
-  Paso 4: Actualizar tipos de cambio (líneas 141-162)
+  Funcion write_diferencia_pct(wb, data_rows):
 
-  La plantilla tiene una mini-tabla en columnas AM-AO con los tipos de cambio. El script la actualiza con los valores del día. Si MXN no estaba en la tabla original, lo añade.
+  En la hoja "Weekly SL y LLC", calcula la diferencia porcentual entre las ventas del ano actual vs el ano anterior, semana a semana. Escribe los resultados en columna 9 con formato 0%.
 
-  Paso 5: Configurar pivots (líneas 164-180)
+  Formula: (Ventas 2026 USD - Ventas 2025 USD) / Ventas 2025 USD
 
-  Recorre las 9 pivot tables del workbook y:
-  - Actualiza el rango de datos para que cubra todas las filas nuevas
-  - Pone refreshOnLoad = True para que al abrir en Excel se refresquen automáticamente
+  ---
+  src/weekly/fx_sheet.py — Hoja FX RATES
+
+  Funcion write_fx_sheet(wb):
+
+  Crea la hoja "FX RATES" en el Weekly Report con tasas diarias del BCE del mes actual. 5 monedas (USD, GBP, CHF, JPY, MXN) con conversiones a EUR y USD.
+
+  ---
+  src/weekly/errores_sheet.py — Hoja ERRORES
+
+  Funcion write_errores_sheet(wb, errors):
+
+  Crea la hoja "ERRORES" con los errores detectados por validators.py. Columnas: Compania, Folio, Error, Vendedor, Fecha. Header rojo, auto-filter habilitado.
 
   ---
   src/bookings/booking_window.py — Matriz Booking Window
 
-  build_booking_matrix(data_rows) (líneas 20-57)
+  build_booking_matrix(data_rows):
+  Crea diccionario {semana_de_venta: {mes_de_salida: total_USD}}. Separa 2026 (keys 1-12) y 2027 (keys 14-25).
 
-  Crea un diccionario: {semana_de_venta: {mes_de_salida: total_USD}}.
+  write_booking_to_excel(wb, matrix):
+  Escribe la matriz dentro de la hoja "Booking Window 2026" del Weekly Report. Cada semana ocupa 2 filas: montos USD y porcentajes.
 
-  Recorre cada reserva de DATA y:
-  - Toma la semana de venta (de la fecha de creación, columna D)
-  - Toma el mes de salida (de fecha_inicio, columna E)
-  - Suma el Total Venta USD (columna M)
-  - Separa 2026 (keys 1-12) y 2027 (keys 14-25)
+  ---
+  src/bookings/export_bookings.py — Export de Bookings
 
-  write_booking_to_excel(wb, matrix) (líneas 60-119)
+  Funcion export_bookings_xlsx(data_rows, output_path, company):
 
-  Escribe la matriz dentro de la hoja "Booking Window 2026" del Weekly Report.
+  Crea un Excel independiente con las reservas de una entidad. 25 columnas incluyendo todas las de DATA. Se genera para SL, LLC, y ALL (combinado).
 
-  La hoja tiene un layout fijo: cada semana ocupa 2 filas. La primera fila son los valores en USD, la segunda son los porcentajes. Week 53 está en fila 2, Week 1 en fila 106 (orden descendente).
+  ---
+  src/dashboard/dashboard.py — Dashboard con graficos
 
-  Para cada semana que tiene datos:
-  1. Escribe los montos USD por mes (columnas C-N para 2026, P-AA para 2027)
-  2. Escribe los totales (columna O para 2026, AB para 2027)
-  3. Escribe fórmulas de porcentaje en la fila de abajo: =C96/$O$96 (valor del mes / total)
+  Funcion generate_dashboard(data_rows, serv_rows, fx, output_path):
 
-  export_booking_xlsx(matrix, output_path) (líneas 122-171)
+  Genera un Excel con 10 hojas de analisis, cada una con tablas formateadas y graficos:
 
-  Crea un Excel independiente con la misma información, pero en formato simple (una tabla plana). Este es el que va a output/espana/ y output/mexico/ como control interno por entidad.
+  1. Rendimiento Vendedor: Top 15 vendedores por venta, rentabilidad y ticket medio
+  2. Evolucion Semanal: Ventas semanales 2026 vs 2025 con variacion %
+  3. Distribucion Rentabilidad: Distribucion de rentabilidad por rangos (0-5%, 5-10%, etc.)
+  4. Booking Window: Ventas por ventana de anticipacion (lead time)
+  5. Estacionalidad: Ventas por mes de inicio del viaje
+  6. Mix Monedas: Distribucion de ventas por moneda (grafico de pastel)
+  7. Rentabilidad por Servicio: Rentabilidad por tipo (HTL, VLO, PKT, TRF, HPS, ATR)
+  8. Concentracion Ventas: Top 20 ventas con analisis Pareto
+  9. LLC vs SL: Comparacion entre entidades
+  10. Tasa Cierre: Porcentaje de cierre por vendedor
+
+  Todas las hojas incluyen formato profesional con colores, bordes y graficos (barras, lineas, pastel, combo).
+
+  ---
+  src/individual/reports.py — Reportes individuales por TA
+
+  Funcion generate_individual_reports(data_rows, output_dir, year, month):
+
+  Genera un Excel por cada Travel Advisor con sus datos del mes. Crea directorios por TA.
+
+  Cada Excel tiene 2 hojas:
+  - Reporte: 2 tablas — ventas por mes de salida y ventas por mes calendario con rentabilidad
+  - DATA: Datos completos del TA (20 columnas)
+
+  Output: output/Reportes_Individuales_Mes_Ano/NombreTA/NombreTA_Mes_Ano.xlsx
+
+  ---
+  src/ta_monthly/report.py — Reporte Mensual Consolidado TAs
+
+  Este es el modulo mas complejo. Genera el reporte mensual de todos los TAs.
+
+  Funcion principal: generate_ta_monthly_report(data_rows, output_dir, fx, year, month)
+
+  Flujo:
+  1. Copia template Reporte_TAs_template.xlsx
+  2. Limpia hojas innecesarias del template (_cleanup_sheets)
+  3. Enriquece datos con plantilla corsario: agrega oficina, linea de negocio, comisionamiento, fecha incorporacion (enrich_data_rows)
+  4. Escribe hoja DATA NEW con datos enriquecidos + tabla FX + plantilla corsario
+  5. Crea hoja FX RATES con tasas diarias del BCE
+  6. Prepara hojas de reportes: limpia cache, ajusta layout de pivots, escribe labels y formulas XLOOKUP
+  7. Actualiza filtros de 5 pivot tables (_update_pivot_filters):
+     - TablaDinamica1: Venta del mes (Mes = target, Ano = target)
+     - TablaDinamica2: Venta YTD (Mes = 1..target, Ano = target)
+     - TablaDinamica3: Venta por mes de inicio (Ano Inicio = target)
+     - TablaDinamica4: Venta por mes (todos los meses, Ano = target)
+     - Ventas LN: YTD agrupado por Oficina > LN > Vendedor
+  8. Force refresh para Excel Windows (_force_pivot_refresh):
+     a. fullCalcOnLoad=True: recalcula todas las formulas al abrir
+     b. refreshOnLoad=True: pide a Excel que refresque cada pivot cache
+     c. recordCount=0: provoca un mismatch que fuerza rebuild del cache
+     d. Rango fuente actualizado: garantiza que cubra todos los datos nuevos
+     e. Registros cacheados vaciados: elimina datos antiguos del XML
+  9. Crea hoja SUMMARY con datos pre-calculados en Python (_write_summary_sheet):
+     - Report 1: Venta del mes actual (Oficina > LN > Vendedor)
+     - Report 2: Venta YTD (Oficina > LN > Vendedor)
+     - Report 3: Venta por mes de inicio (Vendedor x Mes)
+     - Report 4: Venta por mes calendario (Vendedor x Mes, con Fecha Incorporacion)
+  10. Ordena hojas: Reportes TA > Ventas LN > SUMMARY > DATA NEW > FX RATES
+  11. Guarda
+
+  Hojas del output:
+  - Reportes TA {Mes}: 4 pivot tables + labels + formulas XLOOKUP
+  - Ventas por Linea de Negocio: Pivot YTD con jerarquia Oficina > LN > Vendedor
+  - SUMMARY: Datos estaticos pre-calculados (funciona en Apple Numbers, Google Sheets, cualquier app)
+  - DATA NEW: 30 columnas de datos enriquecidos + tabla plantilla corsario (AI-AM) + tabla FX (AO-AQ)
+  - FX RATES: Tasas diarias del mes actual del BCE
+
+  Compatibilidad multiplataforma:
+  - Excel Mac: pivots se refrescan automaticamente al abrir
+  - Excel Windows: los 5 mecanismos de force refresh garantizan que los pivots se recarguen
+  - Apple Numbers: pivots no funcionan (limitacion de Numbers), pero la hoja SUMMARY muestra todos los datos correctamente
+  - Google Sheets: pivots se refrescan, SUMMARY tambien visible
+
+  Datos de la plantilla corsario (plantilla_corsario.csv):
+  Cada TA tiene: usuario_corsario, linea_negocio, comisionamiento (%), pais_trabajo, fecha_inicio.
+  Se usa para enriquecer DATA NEW con columnas Y-AD (Oficina, LN, Comision, Renta after COM, Fecha Inc).
 
   ---
   main.py — El orquestador
 
-  Es lo único que ejecutas. Coordina todo el flujo.
+  Es lo unico que ejecutas. Coordina todo el flujo.
 
-  Argumentos (líneas 32-43)
+  Argumentos:
+  - --weekly, --bookings, --dashboard, --individual, --ta-monthly: Flags de reporte (sin flags = todos)
+  - --week N: Numero de semana (default: semana actual)
+  - --entity espana|mexico|all: Que entidad procesar (default: all)
+  - --report-month N: Mes para reportes individuales (default: mes anterior)
 
-  - --week 7: Especifica la semana. Si no lo pones, usa la semana actual según el calendario ISO.
-  - --entity espana|mexico|all: Qué entidad procesar. Default es all (ambas).
+  Step 1: Tipos de cambio — llama get_latest_fx() una vez.
 
-  Step 1: Tipos de cambio (línea 64)
-
-  Llama get_fx_rates() una sola vez. El resultado se reutiliza para todo.
-
-  Step 2: Bookings por entidad (líneas 66-128)
-
-  Para cada entidad (SL, LLC):
+  Step 2: Carga datos por entidad — para cada entidad (SL, LLC):
   1. Carga reserva.csv y dreserva.csv
-  2. Calcula rentabilidad (pivot de dreserva)
-  3. Construye las filas de DATA y DATA SERV
-  4. Genera el booking window de esa entidad (archivo Excel aparte)
-  5. Valida errores y los imprime en consola
-  6. Acumula los datos para el Weekly Report combinado
+  2. Pre-descarga tasas historicas de FX
+  3. Calcula rentabilidad
+  4. Construye filas DATA y DATA SERV
+  5. Genera Bookings por entidad
+  6. Valida errores
+  7. Acumula todo para los reportes combinados
 
-  Step 3: Weekly Report (líneas 134-162)
+  Step 3: Genera reportes seleccionados:
+  - --weekly: Weekly Report (copia template, escribe DATA/DATA SERV, booking window, diferencia %, FX, errores, pivots)
+  - --bookings: Bookings combinado (SL + LLC en un solo archivo)
+  - --dashboard: Dashboard con 10 hojas de analisis y graficos
+  - --individual: Un Excel por TA del mes (default: mes anterior)
+  - --ta-monthly: Reporte mensual consolidado (pivots + SUMMARY + force refresh)
 
-  1. Combina los datos de SL + LLC en una sola lista
-  2. Genera el Excel: copia plantilla, escribe DATA y DATA SERV combinados
-  3. Llena el Booking Window combinado dentro del Excel
-  4. Guarda como output/Week 7.xlsx
-
+  Step 4: Resumen en consola con totales por entidad.

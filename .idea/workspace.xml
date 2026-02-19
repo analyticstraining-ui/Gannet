@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="Weekply and bookings, TAs">
-      <change beforePath="$PROJECT_DIR$/src/ta_monthly/report.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ta_monthly/report.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/~$Reporte_TAs_template.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/create_ta_seed.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/create_ta_seed.py" afterDir="false" />
+    <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="tas monthly fixed">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Guide/Explicación" beforeDir="false" afterPath="$PROJECT_DIR$/Guide/Explicación" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Guide/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Guide/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Guide/Structure" beforeDir="false" afterPath="$PROJECT_DIR$/Guide/Structure" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Guide/USE" beforeDir="false" afterPath="$PROJECT_DIR$/Guide/USE" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +24,6 @@
       </GitPushTagMode>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -132,12 +133,37 @@
       <option name="project" value="LOCAL" />
       <updated>1771245208358</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771326622427</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1771326622427</updated>
+    </task>
+    <task id="LOCAL-00010" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771327418864</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1771327418864</updated>
+    </task>
+    <task id="LOCAL-00011" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771410158365</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1771410158365</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Weekply and bookings" />
     <MESSAGE value="Weekply and bookings, TAs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Weekply and bookings, TAs" />
+    <MESSAGE value="tas monthly fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="tas monthly fixed" />
   </component>
 </project>

@@ -39,14 +39,21 @@ jobs:
         if: steps.tz.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
-      - name: Generate Weekly Report
+      - name: Generate Weekly Report + Bookings
         if: steps.tz.outputs.skip != 'true'
         run: |
           WEEK_ARG=""
           ENTITY_ARG=""
           [ -n "${{ github.event.inputs.week }}" ] && WEEK_ARG="--week ${{ github.event.inputs.week }}"
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
-          python main.py --weekly $WEEK_ARG $ENTITY_ARG
+          python main.py --weekly --bookings $WEEK_ARG $ENTITY_ARG
+
+      - name: Remove entity bookings (only upload combined)
+        if: steps.tz.outputs.skip != 'true'
+        run: |
+          rm -rf output/espana output/mexico
+          echo "Bookings por entidad eliminados. Solo se sube el combinado."
+          ls -la output/
 
       - name: Upload Weekly Artifact
         if: always()
