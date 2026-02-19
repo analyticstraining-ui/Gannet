@@ -5,10 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed7c9e6f-c9ae-40f0-b5fa-5a7b3eb72943" name="Changes" comment="tas monthly fixed">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/TA's_reports.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/TA's_reports.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ap_ar/AP&amp;AR.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ap_ar/AP&amp;AR.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bookings/booking_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/bookings/booking_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/weekly/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/weekly/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/weekly/diferencia.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/weekly/diferencia.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +26,7 @@
       </GitPushTagMode>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -44,15 +48,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.main.executor": "Run",
+    "Python.verify_weekly.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -164,7 +169,31 @@
       <option name="project" value="LOCAL" />
       <updated>1771496382611</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771505927457</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1771505927457</updated>
+    </task>
+    <task id="LOCAL-00014" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771506116841</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1771506116841</updated>
+    </task>
+    <task id="LOCAL-00015" summary="tas monthly fixed">
+      <option name="closed" value="true" />
+      <created>1771506226004</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1771506226004</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

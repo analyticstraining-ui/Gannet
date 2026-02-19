@@ -10,6 +10,7 @@ Uso:
     python3 main.py --individual                 # solo Reportes individuales por TA
     python3 main.py --ta-monthly                 # solo Reporte mensual consolidado TAs
     python3 main.py --ap-ar                      # solo Reporte AP & AR
+    python3 main.py --comisiones                 # solo Comisiones Pendientes Proveedores
     python3 main.py --weekly --dashboard         # combinaciones
     python3 main.py --week 7                     # semana específica
     python3 main.py --entity espana              # solo España
@@ -29,14 +30,16 @@ from src.validators import detect_errors
 from src.weekly import (
     build_data_rows, build_serv_rows, generate_weekly_excel,
     write_diferencia_pct, write_fx_sheet, write_errores_sheet,
+    update_pivot_week_filters,
 )
 from src.bookings import build_booking_matrix, write_booking_to_excel, export_bookings_xlsx
 from src.dashboard import generate_dashboard
 from src.individual import generate_individual_reports
 from src.ta_monthly import generate_ta_monthly_report
 from src.ap_ar import generate_ap_ar_report
+from src.comisiones_pendientes import generate_comisiones_report
 
-REPORT_FLAGS = ["weekly", "bookings", "dashboard", "individual", "ta_monthly", "ap_ar"]
+REPORT_FLAGS = ["weekly", "bookings", "dashboard", "individual", "ta_monthly", "ap_ar", "comisiones"]
 
 
 def _load_data(entities, today, week_num):
@@ -124,7 +127,9 @@ def _run_weekly(all_data_rows, all_serv_rows, all_errors, total_serv_count,
 
     combined_matrix = build_booking_matrix(all_data_rows)
     print(f"  Booking Window: semanas con datos: {sorted(combined_matrix.keys())}")
-    write_booking_to_excel(wb, combined_matrix)
+    # Derivar ruta del output de la semana anterior desde output_xlsx
+    prev_output = output_xlsx.replace(f"Week_{week_num}_", f"Week_{week_num - 1}_")
+    write_booking_to_excel(wb, combined_matrix, week_num=week_num, prev_output=prev_output)
 
     n_weeks = write_diferencia_pct(wb, all_data_rows)
     print(f"  Weekly SL y LLC: Diferencia % ({n_weeks} semanas)")
@@ -135,6 +140,9 @@ def _run_weekly(all_data_rows, all_serv_rows, all_errors, total_serv_count,
     n_errors = write_errores_sheet(wb, all_errors)
     if n_errors:
         print(f"  Hoja ERRORES: {n_errors} posibles errores")
+
+    n_pivots = update_pivot_week_filters(wb, week_num)
+    print(f"  Filtros de pivots: {n_pivots} actualizados (semanas 1-{week_num})")
 
     print(f"  Guardando {output_xlsx}...")
     wb.save(output_xlsx)
@@ -220,6 +228,25 @@ def _run_ap_ar(entities, output_dir, fx_latest, today):
             print(f"  Saltando {entity_label} (template no encontrado)")
 
 
+def _run_comisiones(entities, output_dir, fx_latest, today):
+    """Genera el Reporte de Comisiones Pendientes Proveedores."""
+    print(f"\n{'─' * 60}")
+    print(f"  Comisiones Pendientes Proveedores")
+    print(f"{'─' * 60}")
+
+    report_path = generate_comisiones_report(
+        entities=entities,
+        output_dir=output_dir,
+        fx=fx_latest,
+        year=today.year,
+        month=today.month,
+    )
+    if report_path:
+        print(f"  Reporte generado: {report_path}")
+    else:
+        print(f"  Saltando reporte (template no encontrado)")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Genera reportes de Gannet",
@@ -232,6 +259,7 @@ Ejemplos:
   python3 main.py --weekly --dashboard         # Weekly + Dashboard
   python3 main.py --ta-monthly                 # solo Reporte mensual TAs
   python3 main.py --ap-ar                      # solo Reporte AP & AR
+  python3 main.py --comisiones                 # Comisiones Pendientes Prov
   python3 main.py --individual --report-month 1  # Individuales de enero
   python3 main.py --week 7 --entity mexico     # semana y entidad específica
         """
@@ -262,6 +290,10 @@ Ejemplos:
     report_group.add_argument(
         "--ap-ar", action="store_true", dest="ap_ar",
         help="Reporte AP & AR (Cuentas por Pagar / Cobrar)"
+    )
+    report_group.add_argument(
+        "--comisiones", action="store_true",
+        help="Reporte Comisiones Pendientes Proveedores"
     )
 
     # ── Parámetros generales ──────────────────────────────────────────
@@ -345,6 +377,9 @@ Ejemplos:
 
     if run["ap_ar"]:
         _run_ap_ar(entities, output_dir, fx_latest, today)
+
+    if run["comisiones"]:
+        _run_comisiones(entities, output_dir, fx_latest, today)
 
     # ── Resumen ───────────────────────────────────────────────────────
     print(f"\n{'═' * 60}")

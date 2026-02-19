@@ -25,6 +25,7 @@ ENTITIES = {
 TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "Week 6.xlsx")
 TA_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "Reporte_TAs_template.xlsx")
 AP_AR_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "AP y AR SL .xlsx")
+COM_PEND_PROV_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "Comisiones Pendientes Prov.xlsx")
 
 # ── Fallback FX rates ─────────────────────────────────────────────────────
 FALLBACK_FX = {
