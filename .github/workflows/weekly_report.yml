@@ -48,6 +48,12 @@ jobs:
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
           python main.py --weekly --bookings $WEEK_ARG $ENTITY_ARG
 
+      - name: Generate AP & AR Report
+        if: steps.tz.outputs.skip != 'true'
+        run: |
+          echo "▶ Generando reporte AP & AR"
+          python main.py --ap-ar
+
       - name: Remove entity bookings (only upload combined)
         if: steps.tz.outputs.skip != 'true'
         run: |
