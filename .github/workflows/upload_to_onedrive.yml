@@ -32,11 +32,18 @@ jobs:
 
       - name: Upload files to SharePoint
         run: |
+          # Obtener el Drive ID del site
+          DRIVE_ID=$(curl -s \
+            "https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives" \
+            -H "Authorization: Bearer ${{ steps.token.outputs.token }}" | jq -r '.value[0].id')
+          
+          echo "Drive ID: $DRIVE_ID"
+          
           for file in ./files-to-upload/**/*; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               curl -X PUT \
-                ""https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives/root:/Corsario/$filename:/content"" \
+                "https://graph.microsoft.com/v1.0/drives/$DRIVE_ID/root:/Corsario/$filename:/content" \
                 -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
                 -H "Content-Type: application/octet-stream" \
                 --data-binary "@$file"
