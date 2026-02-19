@@ -44,9 +44,8 @@ jobs:
             echo "Subiendo: $relative_path"
             
             curl -X PUT \
-              "https://gannetworld.sharepoint.com/sites/administracion/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2Fadministracion%2FDocumentos%20compartidos%2FReporting%2FAutomatizaci%C3%B3n&viewid=56da8d6e%2Dda06%2D45b3%2Dbd7b%2D282892d1f88d&FolderCTID=0x0120009E9242F58A735249AA8670C359A33E11" \
+              "https://graph.microsoft.com/v1.0/drives/$DRIVE_ID/root:/Reporting/Automatizaci%C3%B3n/$relative_path:/content" \
               -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
               -H "Content-Type: application/octet-stream" \
               --data-binary "@$file"
           done
-
