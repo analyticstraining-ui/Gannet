@@ -36,7 +36,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               curl -X PUT \
-                "https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives/root:/Documentos%20compartidos/Corsario/$filename:/content" \
+                ""https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives/root:/Corsario/$filename:/content"" \
                 -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
                 -H "Content-Type: application/octet-stream" \
                 --data-binary "@$file"
