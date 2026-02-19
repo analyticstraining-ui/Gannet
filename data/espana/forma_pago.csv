@@ -1,0 +1,15 @@
+clave,descripcion,comision,comision_fija,comision_prv,comision_fija_prv,tiempo_pago,tipo,activa
+F6I,Transferencia,0.00,0.00,0.00,0.00,0,A,1
+4J5,"Tarjeta Pedro",0.00,0.00,0.00,0.00,0,P,1
+5QA,"Tarjeta Paula",0.00,0.00,0.00,0.00,0,P,1
+O15,"Tarjeta Gannet Spain",0.00,0.00,0.00,0.00,0,P,1
+7K1,Intercompany,0.00,0.00,0.00,0.00,0,A,1
+3YX,"Link tarjeta",2.00,0.00,0.00,0.00,0,C,1
+CJM,Bizum,0.00,0.00,0.00,0.00,0,C,1
+61R,"TPV físico",0.00,0.00,0.00,0.00,0,C,1
+00B,"Pago Directo Hotel / Proveedor",0.00,0.00,0.00,0.00,0,A,1
+3EV,Domiciliación,0.00,0.00,0.00,0.00,0,P,1
+2YW,"Descuento de Comisiones",0.00,0.00,0.00,0.00,0,A,1
+J12,"Gasto Gannet",0.00,0.00,0.00,0.00,0,A,1
+0VW,"Monedero Cliente",0.00,0.00,0.00,0.00,0,C,1
+305,"Monedero Proveedores",0.00,0.00,0.00,0.00,0,P,1

@@ -1,0 +1,16 @@
+clave,tipo,nombre,cuenta,cliente,moneda,limite_credito,saldo,correo_e1,correo_e2,clabe,saldo_inicial,fecha_inicio,cuenta_corp,activa
+2WTW6NIB,B,"Banca March EUR",0118,0,EUR,0.00,0.00,,,0118,0.00,0000-00-00,0,1
+58F4C17Z,B,"Banca March USD",3011,0,USD,0.00,0.00,,,3011,0.00,0000-00-00,0,1
+6KS57267,B,"Intercompany USD",xxxxx,0,USD,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+A4NYP5ID,B,"Intercompany EUR",xxxxx,0,EUR,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+V8HL8Y30,B,"Wise USD",215460137058,0,USD,0.00,0.00,,,"SWIFT: TRWIUS35XXX",0.00,0000-00-00,0,1
+1N7N7W93,B,"Wise EUR","BE34 9054 7311 6190",0,EUR,0.00,0.00,,,"SWIFT: TRWIBEB1XXX",0.00,0000-00-00,0,1
+N7YGAGND,B,"TC Paula 6022","**** **** **** 6022",0,EUR,0.00,0.00,,,"**** **** **** 6022",0.00,0000-00-00,0,1
+9O5LTM76,B,"TC Gannet 3026","**** **** **** 3026",0,EUR,0.00,0.00,,,"**** **** **** 3026",0.00,0000-00-00,0,1
+6831B90J,B,"TC Pedro",xxxxx,0,EUR,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+D81L82X9,B,"Pago Directo Proveedor/Hotel E",xxxxx,0,EUR,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+1E5592P0,B,"Intercompany JPY",xxxxx,0,JPY,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+4JC62HM8,B,"Abanca EUR",1057,0,EUR,0.00,0.00,,,ES282080160005304002,0.00,0000-00-00,0,1
+27XV7E25,B,"Gasto Gannet EUR",xxxxx,0,EUR,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+ZQKOB4Z5,B,"Gasto Gannet USD",xxxxx,0,USD,0.00,0.00,,,xxxxxxxx,0.00,0000-00-00,0,1
+REGHN36P,B,"Intercompany MXN ",xxxxx,0,MXN,0.00,0.00,,,XXXXXXXXXXXXX,0.00,0000-00-00,0,1

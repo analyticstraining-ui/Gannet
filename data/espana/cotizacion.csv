@@ -1,0 +1,7 @@
+folio,tipo,dias,cliente,region_destino,imagen_portada,titulo_pdf,fecha,fecha_limite,fecha_limite_seguimiento,vendedor,pasajero_titular,referencia_venta,espectativa,descripcion_general,moneda,informacion_adicional,observaciones,restricciones,vigencia,estatus,favorita,cancelada,bitacora
+1,,0,434565,,0,,2025-09-10,0000-00-00,2025-09-17,PaulinaA,,0,0,"3 pasajeros total 
+
+Fabiana Alvarez Cortes
+Paulina Alvarez Cortes",USD,,,,,P,0,0,
+2,,0,435072,UX2,0,,2025-09-15,0000-00-00,2025-09-19,PaulinaA,,0,0,"2 personas, luna de miel",USD,,,,,P,0,0,
+3,,0,438473,,0,,2025-10-23,0000-00-00,2025-10-23,AndreaG,22,0,25,22,EUR,,,,,P,0,0,
