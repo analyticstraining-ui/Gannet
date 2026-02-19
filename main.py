@@ -9,6 +9,7 @@ Uso:
     python3 main.py --dashboard                  # solo Dashboard
     python3 main.py --individual                 # solo Reportes individuales por TA
     python3 main.py --ta-monthly                 # solo Reporte mensual consolidado TAs
+    python3 main.py --ap-ar                      # solo Reporte AP & AR
     python3 main.py --weekly --dashboard         # combinaciones
     python3 main.py --week 7                     # semana específica
     python3 main.py --entity espana              # solo España
@@ -33,8 +34,9 @@ from src.bookings import build_booking_matrix, write_booking_to_excel, export_bo
 from src.dashboard import generate_dashboard
 from src.individual import generate_individual_reports
 from src.ta_monthly import generate_ta_monthly_report
+from src.ap_ar import generate_ap_ar_report
 
-REPORT_FLAGS = ["weekly", "bookings", "dashboard", "individual", "ta_monthly"]
+REPORT_FLAGS = ["weekly", "bookings", "dashboard", "individual", "ta_monthly", "ap_ar"]
 
 
 def _load_data(entities, today, week_num):
@@ -189,6 +191,35 @@ def _run_ta_monthly(all_data_rows, output_dir, fx_latest, today):
         print(f"  Saltando reporte (template no encontrado)")
 
 
+_AP_AR_ENTITY_LABELS = {"SL": "Madrid", "LLC": "Mexico"}
+
+
+def _run_ap_ar(entities, output_dir, fx_latest, today):
+    """Genera el Reporte AP & AR para cada entidad."""
+    print(f"\n{'─' * 60}")
+    print(f"  Reporte AP & AR (Cuentas por Pagar / Cobrar)")
+    print(f"{'─' * 60}")
+
+    for key, cfg in entities.items():
+        company = cfg["company"]
+        data_dir = cfg["data_dir"]
+        entity_label = _AP_AR_ENTITY_LABELS.get(company, cfg["label"])
+
+        report_path = generate_ap_ar_report(
+            data_dir=data_dir,
+            output_dir=output_dir,
+            fx=fx_latest,
+            company=company,
+            entity_label=entity_label,
+            year=today.year,
+            month=today.month,
+        )
+        if report_path:
+            print(f"  Reporte generado: {report_path}")
+        else:
+            print(f"  Saltando {entity_label} (template no encontrado)")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Genera reportes de Gannet",
@@ -200,6 +231,7 @@ Ejemplos:
   python3 main.py --dashboard                  # solo Dashboard
   python3 main.py --weekly --dashboard         # Weekly + Dashboard
   python3 main.py --ta-monthly                 # solo Reporte mensual TAs
+  python3 main.py --ap-ar                      # solo Reporte AP & AR
   python3 main.py --individual --report-month 1  # Individuales de enero
   python3 main.py --week 7 --entity mexico     # semana y entidad específica
         """
@@ -226,6 +258,10 @@ Ejemplos:
     report_group.add_argument(
         "--ta-monthly", action="store_true", dest="ta_monthly",
         help="Reporte mensual consolidado de TAs"
+    )
+    report_group.add_argument(
+        "--ap-ar", action="store_true", dest="ap_ar",
+        help="Reporte AP & AR (Cuentas por Pagar / Cobrar)"
     )
 
     # ── Parámetros generales ──────────────────────────────────────────
@@ -306,6 +342,9 @@ Ejemplos:
 
     if run["ta_monthly"]:
         _run_ta_monthly(all_data_rows, output_dir, fx_latest, today)
+
+    if run["ap_ar"]:
+        _run_ap_ar(entities, output_dir, fx_latest, today)
 
     # ── Resumen ───────────────────────────────────────────────────────
     print(f"\n{'═' * 60}")

@@ -31,6 +31,11 @@ jobs:
           echo "▶ Generando reporte mensual consolidado TAs"
           python main.py --ta-monthly
 
+      - name: Generate AP & AR Report
+        run: |
+          echo "▶ Generando reporte AP & AR"
+          python main.py --ap-ar
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
