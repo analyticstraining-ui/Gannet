@@ -55,5 +55,5 @@ jobs:
         with:
           name: weekly-report
           path: output/
-          retention-days: 30
+          retention-days: 309
 
