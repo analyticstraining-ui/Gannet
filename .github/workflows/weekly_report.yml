@@ -33,7 +33,7 @@ jobs:
           if [ -n "${{ github.event.inputs.week }}" ]; then
             WEEK_ARG="--week ${{ github.event.inputs.week }}"
           elif [ "${{ github.event_name }}" = "schedule" ]; then
-            PREV_WEEK=$(TZ='Europe/Madrid' date -d 'last monday' +%V | sed 's/^0*//')
+            PREV_WEEK=$(TZ='Europe/Madrid' date +%V | sed 's/^0*//')
             WEEK_ARG="--week $PREV_WEEK"
           fi
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
