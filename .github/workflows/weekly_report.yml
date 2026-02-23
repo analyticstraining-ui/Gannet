@@ -1,5 +1,4 @@
 name: Weekly Report
-
 on:
   schedule:
     - cron: '0 5 * * 1'   # 07:00 Madrid (verano)
@@ -12,11 +11,9 @@ on:
       entity:
         description: 'Entidad (espana, mexico, all)'
         required: false
-
 jobs:
   weekly:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check Madrid time
         if: github.event_name == 'schedule'
@@ -44,7 +41,12 @@ jobs:
         run: |
           WEEK_ARG=""
           ENTITY_ARG=""
-          [ -n "${{ github.event.inputs.week }}" ] && WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          if [ -n "${{ github.event.inputs.week }}" ]; then
+            WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            PREV_WEEK=$(TZ='Europe/Madrid' date -d 'last monday' +%V | sed 's/^0*//')
+            WEEK_ARG="--week $PREV_WEEK"
+          fi
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
           python main.py --weekly --bookings $WEEK_ARG $ENTITY_ARG
 
@@ -62,11 +64,10 @@ jobs:
           ls -la output/
 
       - name: Upload Weekly Artifact
-        if: always()
+        if: steps.tz.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: weekly-report
           path: output/
           retention-days: 30
-
 
