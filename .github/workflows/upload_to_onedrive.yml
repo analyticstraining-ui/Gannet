@@ -1,5 +1,4 @@
 name: Upload Reports to OneDrive
-
 on:
   workflow_run:
     workflows: ["Monthly TA Reports", "Weekly Report"]
@@ -10,7 +9,7 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -35,14 +34,14 @@ jobs:
           DRIVE_ID=$(curl -s \
             "https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives" \
             -H "Authorization: Bearer ${{ steps.token.outputs.token }}" | jq -r '.value[0].id')
-          
+
           echo "Drive ID: $DRIVE_ID"
-          
+
           find ./files-to-upload -type f | while read file; do
-            relative_path="${file#./files-to-upload/monthly-ta-reports/}"
-            
+            relative_path="${file#./files-to-upload/}"
+
             echo "Subiendo: $relative_path"
-            
+
             curl -X PUT \
               "https://graph.microsoft.com/v1.0/drives/$DRIVE_ID/root:/Reporting/Automatizaci%C3%B3n/$relative_path:/content" \
               -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
