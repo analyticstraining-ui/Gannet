@@ -1,8 +1,8 @@
 name: Weekly Report
 on:
   schedule:
-    - cron: '0 5 * * 1'   # 07:00 Madrid (verano)
-    - cron: '0 6 * * 1'   # 07:00 Madrid (invierno)
+  - cron: '30 8 * * 1'   # 10:30 Madrid (verano)
+  - cron: '30 9 * * 1'   # 10:30 Madrid (invierno)
   workflow_dispatch:
     inputs:
       week:
