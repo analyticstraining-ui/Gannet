@@ -1,9 +1,7 @@
 name: Weekly Report
-
 on:
   schedule:
-    - cron: '0 5 * * 1'   # 07:00 Madrid (verano)
-    - cron: '0 6 * * 1'   # 07:00 Madrid (invierno)
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       week:
@@ -16,57 +14,46 @@ on:
 jobs:
   weekly:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check Madrid time
-        if: github.event_name == 'schedule'
-        id: tz
-        run: |
-          HOUR=$(TZ='Europe/Madrid' date +%H)
-          [ "$HOUR" != "07" ] && echo "skip=true" >> $GITHUB_OUTPUT || echo "skip=false" >> $GITHUB_OUTPUT
-
       - name: Checkout
-        if: steps.tz.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Python
-        if: steps.tz.outputs.skip != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
-        if: steps.tz.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Generate Weekly Report + Bookings
-        if: steps.tz.outputs.skip != 'true'
         run: |
           WEEK_ARG=""
           ENTITY_ARG=""
-          [ -n "${{ github.event.inputs.week }}" ] && WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          if [ -n "${{ github.event.inputs.week }}" ]; then
+            WEEK_ARG="--week ${{ github.event.inputs.week }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            PREV_WEEK=$(TZ='Europe/Madrid' date +%V | sed 's/^0*//')
+            WEEK_ARG="--week $PREV_WEEK"
+          fi
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
           python main.py --weekly --bookings $WEEK_ARG $ENTITY_ARG
 
       - name: Generate AP & AR Report
-        if: steps.tz.outputs.skip != 'true'
         run: |
           echo "▶ Generando reporte AP & AR"
           python main.py --ap-ar
 
       - name: Remove entity bookings (only upload combined)
-        if: steps.tz.outputs.skip != 'true'
         run: |
           rm -rf output/espana output/mexico
           echo "Bookings por entidad eliminados. Solo se sube el combinado."
           ls -la output/
 
       - name: Upload Weekly Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: weekly-report
           path: output/
           retention-days: 30
-
 
