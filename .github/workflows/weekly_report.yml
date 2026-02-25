@@ -1,7 +1,7 @@
 name: Weekly Report
 on:
   schedule:
-    - cron: '45 8 * * 1'
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       week:
