@@ -1,7 +1,7 @@
 name: Weekly Report
 on:
   schedule:
-    - cron: '20 10 * * 1'
+    - cron: '45 8 * * 1'
   workflow_dispatch:
     inputs:
       week:
@@ -55,5 +55,5 @@ jobs:
         with:
           name: weekly-report
           path: output/
-          retention-days: 309
+          retention-days: 30
 
