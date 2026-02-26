@@ -1,54 +1,50 @@
-name: Monthly TA Reports
+name: Upload Reports to OneDrive
 on:
-  schedule:
-    - cron: '0 5 7 * *'
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Monthly TA Reports", "Weekly Report"]
+    types:
+      - completed
 
 jobs:
-  monthly-ta:
+  upload:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          python-version: '3.12'
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./files-to-upload
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Generate Individual TA Reports
+      - name: Get OneDrive token
+        id: token
         run: |
-          python main.py --individual
+          TOKEN=$(curl -s -X POST \
+            "https://login.microsoftonline.com/${{ secrets.ONEDRIVE_TENANT_ID }}/oauth2/v2.0/token" \
+            -d "client_id=${{ secrets.ONEDRIVE_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.ONEDRIVE_CLIENT_SECRET }}" \
+            -d "scope=https://graph.microsoft.com/.default" \
+            -d "grant_type=client_credentials" | jq -r '.access_token')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Generate TA Monthly Report
+      - name: Upload files to SharePoint
         run: |
-          python main.py --ta-monthly
+          DRIVE_ID=$(curl -s \
+            "https://graph.microsoft.com/v1.0/sites/gannetworld.sharepoint.com:/sites/administracion:/drives" \
+            -H "Authorization: Bearer ${{ steps.token.outputs.token }}" | jq -r '.value[0].id')
 
-      - name: Organizar carpetas output
-        run: |
-          mkdir -p output/TAs/Individual
-          mkdir -p output/TAs/Monthly
+          echo "Drive ID: $DRIVE_ID"
 
-          find output -maxdepth 1 -name "TA_Monthly_*.xlsx" -exec mv {} output/TAs/Monthly/ \;
-          find output/individual -name "*.xlsx" -exec mv {} output/TAs/Individual/ \; 2>/dev/null || true
-          find output -maxdepth 1 -name "*_TA_*.xlsx" -exec mv {} output/TAs/Monthly/ \; 2>/dev/null || true
+          find ./files-to-upload -type f | while read file; do
+            relative_path="${file#./files-to-upload/}"
 
-          ls -la output/TAs/
-          ls -la output/TAs/Individual/
+            echo "Subiendo: $relative_path"
 
-      - name: Upload TAs Monthly
-        uses: actions/upload-artifact@v4
-        with:
-          name: TAs Monthly
-          path: output/TAs/Monthly/
-          retention-days: 90
-
-      - name: Upload TAs Individual
-        uses: actions/upload-artifact@v4
-        with:
-          name: TAs Individual
-          path: output/TAs/Individual/
-          retention-days: 90
+            curl -X PUT \
+              "https://graph.microsoft.com/v1.0/drives/$DRIVE_ID/root:/Reporting/Automatizaci%C3%B3n/$relative_path:/content" \
+              -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary "@$file"
+          done
