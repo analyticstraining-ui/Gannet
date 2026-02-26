@@ -1,7 +1,7 @@
 name: Monthly TA Reports
 on:
   schedule:
-    - cron: '0 5 * * 1' # (mensual, primer lunes de cada mes)
+    - cron: '0 5 * * 1'
   workflow_dispatch:
     inputs:
       entity:
@@ -13,40 +13,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check if first Monday of month
+        if: github.event_name == 'schedule'
         id: check
         run: |
           DAY=$(TZ='Europe/Madrid' date +%d)
-          [ "$DAY" -le 7 ] && echo "run=true" >> $GITHUB_OUTPUT || echo "run=false" >> $GITHUB_OUTPUT
+          [ "$DAY" -le 7 ] && echo "skip=false" >> $GITHUB_OUTPUT || echo "skip=true" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Python
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Generate TA Monthly Report
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         run: |
           ENTITY_ARG=""
           [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
           python main.py --ta-monthly --individual $ENTITY_ARG
 
       - name: Remove entity bookings
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         run: |
           rm -rf output/espana output/mexico
           ls -la output/
 
       - name: Upload Monthly Artifact
-        if: steps.check.outputs.run == 'true'
+        if: steps.check.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: monthly-ta-reports
