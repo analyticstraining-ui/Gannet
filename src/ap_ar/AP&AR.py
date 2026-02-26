@@ -4,14 +4,15 @@ Genera el Reporte AP & AR (Cuentas por Pagar / Cobrar).
 AP = Accounts Payable  → cuánto se debe a proveedores
 AR = Accounts Receivable → cuánto deben los clientes
 
-Flujo:
+Flujo (siguiendo instrucciones manuales):
   1. Copiar template
-  2. Leer reserva (folio, moneda, fecha_inicio)
-  3. Leer pago_proveedor → pivots AP (total vs ya pagado)
-  4. Leer pago_cliente   → pivots AR (total vs ya cobrado)
-  5. Escribir Data AP y Data AR con datos + fórmulas XLOOKUP
-  6. Crear Alertas Pago (próximos a vencer / ya excedidos)
-  7. Actualizar FX, filtros de pivots, force refresh
+  2. Leer reserva → tabla lookup (folio, total_proveedor/total_cliente, moneda, fecha_inicio)
+  3. Leer pago_proveedor → "ya pagado" (todos los aplicados) + "venta directa" (solo VD)
+  4. Leer pago_cliente → "ya cobrado" (todos los aplicados) + "venta directa" (solo VD)
+  5. Para LLC: tabla 4ZP/monedero de pago_cliente
+  6. Escribir AP DATA y AR DATA con fórmulas XLOOKUP
+  7. Crear Alertas Pago, Flags, FX Rates
+  8. Force refresh de pivots
 """
 
 import os
@@ -30,14 +31,14 @@ from config import AP_AR_TEMPLATE_PATH, MONTH_NAMES_ES
 from src.data_loader import load_reserva
 from src.weekly.fx_sheet import write_fx_sheet
 
-# Códigos de "venta directa" por entidad (se excluyen de los pivots)
+# Códigos de "venta directa" por entidad
 VENTA_DIRECTA = {
     "SL": {"00B"},
     "LLC": {"4E2", "E04"},
 }
 
-# Hojas a conservar en el output
-_KEEP_SHEETS = {"Data AP", "Data AR", "AP Pivot", "AR Pivot"}
+# Hojas a conservar en el output (nombres del template LLC)
+_KEEP_SHEETS = {"AP DATA", "AR DATA", "AP Pivot", "AR Pivot"}
 
 # Monedas para la tabla FX
 _FX_CURRENCIES = ["EUR", "USD", "CHF", "GBP", "GPB", "JPY", "MXN"]
@@ -76,54 +77,10 @@ def _load_payment_csv(data_dir, filename):
     return df
 
 
-# ── Construcción de pivots ───────────────────────────────────────────────
-
-def _build_ap_pivots(pago_prov_df, vd_codes):
-    """Construye los dos pivots de AP desde pago_proveedor.
-
-    Pivot 1 (total comprometido): cancelado=0, forma_pago NOT venta directa
-    Pivot 2 (ya pagado):          + fecha_aplicacion != '0000-00-00'
-
-    Returns (pivot1_dict, pivot2_dict): {reserva: sum_monto}
-    """
-    base = pago_prov_df[
-        (pago_prov_df["cancelado"] == 0) &
-        (~pago_prov_df["forma_pago"].isin(vd_codes))
-    ].copy()
-
-    pivot1 = base.groupby("reserva")["monto"].sum().to_dict()
-
-    paid = base[base["fecha_aplicacion"] != "0000-00-00"]
-    pivot2 = paid.groupby("reserva")["monto"].sum().to_dict()
-
-    return pivot1, pivot2
-
-
-def _build_ar_pivots(pago_cli_df, vd_codes):
-    """Construye los dos pivots de AR desde pago_cliente.
-
-    Pivot 1 (total cliente):  cancelado=0, forma_pago NOT venta directa
-    Pivot 2 (ya cobrado):     + fecha_proceso != '0000-00-00'
-
-    Returns (pivot1_dict, pivot2_dict): {reserva: sum_monto}
-    """
-    base = pago_cli_df[
-        (pago_cli_df["cancelado"] == 0) &
-        (~pago_cli_df["forma_pago"].isin(vd_codes))
-    ].copy()
-
-    pivot1 = base.groupby("reserva")["monto"].sum().to_dict()
-
-    received = base[base["fecha_proceso"] != "0000-00-00"]
-    pivot2 = received.groupby("reserva")["monto"].sum().to_dict()
-
-    return pivot1, pivot2
-
-
 # ── Lookup de reserva ────────────────────────────────────────────────────
 
 def _build_reserva_lookup(reserva_df):
-    """Crea {folio: {moneda, fecha_inicio}} desde reserva filtrada."""
+    """Crea {folio: {moneda, fecha_inicio, total_proveedor, total_cliente}}."""
     lookup = {}
     for _, r in reserva_df.iterrows():
         folio = r["folio"]
@@ -137,91 +94,298 @@ def _build_reserva_lookup(reserva_df):
                     fecha_inicio = None
         else:
             fecha_inicio = None
-        lookup[folio] = {"moneda": moneda, "fecha_inicio": fecha_inicio}
+
+        total_prov = r.get("total_proveedor", 0)
+        if pd.isna(total_prov):
+            total_prov = 0
+        total_cli = r.get("total_cliente", 0)
+        if pd.isna(total_cli):
+            total_cli = 0
+
+        lookup[folio] = {
+            "moneda": moneda,
+            "fecha_inicio": fecha_inicio,
+            "total_proveedor": float(total_prov),
+            "total_cliente": float(total_cli),
+        }
     return lookup
+
+
+# ── Construcción de datos ────────────────────────────────────────────────
+
+def _build_ya_pagado(payment_df, date_col):
+    """Pivot de TODOS los pagos aplicados (sin exclusión de venta directa).
+
+    Filtros: cancelado=0, date_col != '0000-00-00'
+    Returns {reserva: sum_monto}
+    """
+    applied = payment_df[
+        (payment_df["cancelado"] == 0) &
+        (payment_df[date_col].astype(str).str.strip() != "0000-00-00")
+    ]
+    return applied.groupby("reserva")["monto"].sum().to_dict()
+
+
+def _build_venta_directa(payment_df, vd_codes, date_col, monto_col):
+    """Pivot de SOLO pagos de venta directa aplicados.
+
+    Filtros: cancelado=0, date_col != '0000-00-00', forma_pago IN vd_codes
+    Returns {reserva: sum_monto}
+    """
+    filtered = payment_df[
+        (payment_df["cancelado"] == 0) &
+        (payment_df[date_col].astype(str).str.strip() != "0000-00-00") &
+        (payment_df["forma_pago"].isin(vd_codes))
+    ]
+    return filtered.groupby("reserva")[monto_col].sum().to_dict()
+
+
+def _build_moneda_raw(payment_df, date_col):
+    """Lista de (reserva, moneda) de pagos aplicados, un row por reserva.
+
+    Para tabla W-X (currency lookup).
+    """
+    applied = payment_df[
+        (payment_df["cancelado"] == 0) &
+        (payment_df[date_col].astype(str).str.strip() != "0000-00-00")
+    ]
+    # Un row por reserva (primera moneda encontrada)
+    deduped = applied.drop_duplicates(subset="reserva")[["reserva", "moneda"]]
+    return list(deduped.itertuples(index=False, name=None))
+
+
+def _build_4zp_records(pago_cli_df):
+    """Registros 4ZP/monedero de pago_cliente (solo LLC).
+
+    Filtro: cancelado=0, forma_pago='4ZP'
+    Returns list of (reserva, monto, moneda)
+    """
+    filtered = pago_cli_df[
+        (pago_cli_df["cancelado"] == 0) &
+        (pago_cli_df["forma_pago"] == "4ZP")
+    ]
+    return [
+        (row["reserva"], row["monto"], str(row.get("moneda", "MXN")).strip())
+        for _, row in filtered.iterrows()
+    ]
 
 
 # ── Escritura de hojas de datos ──────────────────────────────────────────
 #
-# Layout unificado AP y AR (versión reparada):
-#   A:  folio
-#   B:  moneda           = XLOOKUP(A, Q:Q, S:S)
-#   C:  total            = XLOOKUP(A, U:U, V:V)
-#   D:  total EUR        = C * XLOOKUP(B, Z:Z, AA:AA)
-#   E:  total USD        = C * XLOOKUP(B, Z:Z, AB:AB)
-#   F:  ya pagado        = XLOOKUP(A, X:X, Y:Y)
-#   G:  pagado EUR       = F * XLOOKUP(B, Z:Z, AA:AA)
-#   H:  pagado USD       = F * XLOOKUP(B, Z:Z, AB:AB)
-#   I:  restante         = C - F
-#   J:  restante USD     = I * XLOOKUP(B, Z:Z, AB:AB)
-#   K:  fecha_inicio     = XLOOKUP(A, Q:Q, R:R)
-#   L:  fecha -30        = K - 30
-#   M:  mes 30 días      = MONTH(L)
-#   N:  año 30 días      = YEAR(L)
+# AP DATA layout (siguiendo template LLC):
+#   A:  reserva (literal)      F: ya pagado (literal)
+#   B-E, G-N: fórmulas XLOOKUP
+#   Q-R: venta directa pivot   S: moneda (XLOOKUP)  T: USD  U: forma_pago
+#   W-X: reserva+moneda raw
+#   Z-AD: reserva lookup (folio, total_prov, moneda, USD, fecha_inicio)
+#   AG-AI: FX table
 #
-#   Q:  folio (lookup)   R: fecha_inicio   S: moneda
-#   U:  folio (pivot1)   V: sum monto (total)
-#   X:  folio (pivot2)   Y: sum monto (pagado/cobrado)
-#   Z:  DIVISA           AA: Fx EUR        AB: Fx USD
+# AR DATA layout (siguiendo template LLC):
+#   A-N: similar a AP
+#   Q-U: venta directa pivot
+#   W-X: reserva+moneda raw
+#   Z-AD: tabla 4ZP (solo LLC)
+#   AF-AI: reserva lookup (folio, moneda, total_cli, fecha_inicio)
+#   AM-AO: FX table
 
-def _write_data_sheet(ws, folios, reserva_lookup, pivot1, pivot2, fx):
-    """Escribe una hoja Data AP o Data AR (layout unificado)."""
-    # Limpiar datos existentes (preservar fila 1 headers)
+def _clear_sheet(ws, max_col):
+    """Limpia datos existentes preservando fila 1 (headers)."""
     for row in range(2, ws.max_row + 1):
-        for col in range(1, 29):  # A-AB
+        for col in range(1, max_col + 1):
             ws.cell(row, col).value = None
 
-    # A-N: folios + fórmulas XLOOKUP
-    for i, folio in enumerate(folios):
-        r = i + 2
-        ws.cell(r, 1).value = folio                                           # A
-        ws.cell(r, 2).value = f'=_xlfn.XLOOKUP(A{r},Q:Q,S:S,"not found")'    # B moneda
-        ws.cell(r, 3).value = f'=_xlfn.XLOOKUP(A{r},U:U,V:V)'               # C total
-        ws.cell(r, 4).value = f'=C{r}*_xlfn.XLOOKUP(B{r},Z:Z,AA:AA)'        # D EUR
-        ws.cell(r, 5).value = f'=C{r}*_xlfn.XLOOKUP(B{r},Z:Z,AB:AB)'        # E USD
-        ws.cell(r, 6).value = f'=_xlfn.XLOOKUP(A{r},X:X,Y:Y)'               # F pagado
-        ws.cell(r, 7).value = f'=F{r}*_xlfn.XLOOKUP(B{r},Z:Z,AA:AA)'        # G EUR
-        ws.cell(r, 8).value = f'=F{r}*_xlfn.XLOOKUP(B{r},Z:Z,AB:AB)'        # H USD
-        ws.cell(r, 9).value = f'=C{r}-F{r}'                                  # I restante
-        ws.cell(r, 10).value = f'=I{r}*_xlfn.XLOOKUP(B{r},Z:Z,AB:AB,0)'     # J rest USD
-        ws.cell(r, 11).value = f'=_xlfn.XLOOKUP(A{r},Q:Q,R:R,"NO")'         # K fecha
-        ws.cell(r, 12).value = f'=K{r}-30'                                   # L -30
-        ws.cell(r, 13).value = f'=MONTH(L{r})'                               # M mes
-        ws.cell(r, 14).value = f'=YEAR(L{r})'                                # N año
 
-    # Q-S: lookup (folio, fecha_inicio, moneda)
-    for i, folio in enumerate(folios):
-        r = i + 2
-        info = reserva_lookup.get(folio, {})
-        ws.cell(r, 17).value = folio                           # Q
-        fi = info.get("fecha_inicio")
-        if fi is not None:
-            ws.cell(r, 18).value = fi                          # R fecha_inicio
-            ws.cell(r, 18).number_format = 'DD/MM/YYYY'
-        ws.cell(r, 19).value = info.get("moneda", "EUR")      # S moneda
-
-    # U-V: pivot 1 (total comprometido / total cliente)
-    for i, folio in enumerate(folios):
-        r = i + 2
-        ws.cell(r, 21).value = folio                           # U
-        ws.cell(r, 22).value = round(pivot1.get(folio, 0), 2)  # V
-
-    # X-Y: pivot 2 (ya pagado / ya cobrado)
-    for i, folio in enumerate(folios):
-        r = i + 2
-        ws.cell(r, 24).value = folio                           # X
-        ws.cell(r, 25).value = round(pivot2.get(folio, 0), 2)  # Y
-
-    # Z-AB: FX table (row 3 = header, rows 4+ = currencies)
-    ws.cell(3, 26).value = "DIVISA"   # Z3
-    ws.cell(3, 27).value = "Fx EUR"   # AA3
-    ws.cell(3, 28).value = "Fx USD"   # AB3
+def _write_fx_table(ws, fx, col_divisa, col_eur, col_usd, start_row=1):
+    """Escribe la mini-tabla FX (DIVISA, Fx EUR, Fx USD)."""
+    ws.cell(start_row, col_divisa).value = "DIVISA"
+    ws.cell(start_row, col_eur).value = "Fx EUR"
+    ws.cell(start_row, col_usd).value = "Fx USD"
     for i, curr in enumerate(_FX_CURRENCIES):
-        r = 4 + i
-        ws.cell(r, 26).value = curr
+        r = start_row + 1 + i
+        ws.cell(r, col_divisa).value = curr
         if curr in fx:
-            ws.cell(r, 27).value = fx[curr]["EUR"]
-            ws.cell(r, 28).value = fx[curr]["USD"]
+            ws.cell(r, col_eur).value = fx[curr]["EUR"]
+            ws.cell(r, col_usd).value = fx[curr]["USD"]
+
+
+def _write_ap_data(ws, ya_pagado, venta_directa, moneda_raw,
+                   reserva_lookup, fx, vd_label):
+    """Escribe AP DATA siguiendo el layout del template LLC."""
+    _clear_sheet(ws, 35)  # A-AI
+
+    folios = sorted(ya_pagado.keys())
+
+    # ── A + F: reserva y ya pagado (literales) ──
+    for i, folio in enumerate(folios):
+        r = i + 2
+        ws.cell(r, 1).value = folio                                    # A
+        ws.cell(r, 6).value = round(ya_pagado[folio], 2)               # F
+
+    # ── B-E, G-N: fórmulas XLOOKUP ──
+    for i, folio in enumerate(folios):
+        r = i + 2
+        # B: moneda desde reserva lookup (Z:AB)
+        ws.cell(r, 2).value = f'=_xlfn.XLOOKUP(A{r},Z:Z,AB:AB,"not found")'
+        # C: total_proveedor - venta_directa
+        ws.cell(r, 3).value = f'=_xlfn.XLOOKUP(A{r},Z:Z,AA:AA)-_xlfn.XLOOKUP(A{r},Q:Q,R:R,"0")'
+        # D: C * FX EUR
+        ws.cell(r, 4).value = f'=C{r}*_xlfn.XLOOKUP(B{r},AG:AG,AH:AH)'
+        # E: C * FX USD
+        ws.cell(r, 5).value = f'=C{r}*_xlfn.XLOOKUP(B{r},AG:AG,AI:AI)'
+        # G: F * FX EUR
+        ws.cell(r, 7).value = f'=F{r}*_xlfn.XLOOKUP(B{r},AG:AG,AH:AH)'
+        # H: F * FX USD
+        ws.cell(r, 8).value = f'=F{r}*_xlfn.XLOOKUP(B{r},AG:AG,AI:AI)'
+        # I: restante = C - F + venta_directa
+        ws.cell(r, 9).value = f'=C{r}-F{r}+_xlfn.XLOOKUP(A{r},Q:Q,R:R,"0")'
+        # J: restante USD
+        ws.cell(r, 10).value = f'=I{r}*_xlfn.XLOOKUP(B{r},AG:AG,AI:AI)'
+        # K: fecha_inicio
+        ws.cell(r, 11).value = f'=_xlfn.XLOOKUP(A{r},Z:Z,AD:AD)'
+        # L: fecha - 30
+        ws.cell(r, 12).value = f'=K{r}-30'
+        # M: mes
+        ws.cell(r, 13).value = f'=MONTH(L{r})'
+        # N: año
+        ws.cell(r, 14).value = f'=YEAR(L{r})'
+
+    # ── Q-U: venta directa pivot ──
+    vd_folios = sorted(venta_directa.keys())
+    for i, folio in enumerate(vd_folios):
+        r = i + 2
+        ws.cell(r, 17).value = folio                                    # Q
+        ws.cell(r, 18).value = round(venta_directa[folio], 2)           # R
+        # S: moneda via XLOOKUP desde W-X
+        ws.cell(r, 19).value = f'=_xlfn.XLOOKUP(Q{r},W:W,X:X)'
+        # T: monto USD
+        ws.cell(r, 20).value = f'=R{r}*_xlfn.XLOOKUP(S{r},AG:AG,AI:AI)'
+        ws.cell(r, 21).value = vd_label                                 # U
+
+    # ── W-X: reserva + moneda raw ──
+    for i, (reserva, moneda) in enumerate(moneda_raw):
+        r = i + 2
+        ws.cell(r, 23).value = reserva                                  # W
+        ws.cell(r, 24).value = str(moneda).strip() if pd.notna(moneda) else "EUR"  # X
+
+    # ── Z-AD: reserva lookup (folio, total_proveedor, moneda, USD, fecha_inicio) ──
+    all_folios = sorted(reserva_lookup.keys())
+    for i, folio in enumerate(all_folios):
+        r = i + 2
+        info = reserva_lookup[folio]
+        ws.cell(r, 26).value = folio                                     # Z
+        ws.cell(r, 27).value = round(info["total_proveedor"], 2)         # AA
+        ws.cell(r, 28).value = info["moneda"]                            # AB
+        # AC: total_proveedor USD
+        ws.cell(r, 29).value = f'=AA{r}*_xlfn.XLOOKUP(AB{r},AG:AG,AI:AI)'
+        fi = info["fecha_inicio"]
+        if fi is not None:
+            ws.cell(r, 30).value = fi                                    # AD
+            ws.cell(r, 30).number_format = 'DD/MM/YYYY'
+
+    # ── AG-AI: FX table ──
+    _write_fx_table(ws, fx, col_divisa=33, col_eur=34, col_usd=35)
+
+    return len(folios)
+
+
+def _write_ar_data(ws, ya_pagado, venta_directa, moneda_raw,
+                   reserva_lookup, zp_records, fx, company, vd_label):
+    """Escribe AR DATA siguiendo el layout del template LLC."""
+    _clear_sheet(ws, 41)  # A-AO
+
+    folios = sorted(ya_pagado.keys())
+
+    # ── A + F: reserva y ya cobrado (literales) ──
+    for i, folio in enumerate(folios):
+        r = i + 2
+        ws.cell(r, 1).value = folio                                    # A
+        ws.cell(r, 6).value = round(ya_pagado[folio], 2)               # F
+
+    # ── B-E, G-N: fórmulas XLOOKUP ──
+    for i, folio in enumerate(folios):
+        r = i + 2
+        # B: moneda desde reserva lookup (AF:AG)
+        ws.cell(r, 2).value = f'=_xlfn.XLOOKUP(A{r},AF:AF,AG:AG,"not found")'
+        # C: total_cliente - venta_directa
+        ws.cell(r, 3).value = f'=_xlfn.XLOOKUP(A{r},AF:AF,AH:AH)-_xlfn.XLOOKUP(A{r},Q:Q,R:R,"0")'
+        # D: C * FX EUR
+        ws.cell(r, 4).value = f'=C{r}*_xlfn.XLOOKUP(B{r},AM:AM,AN:AN)'
+        # E: C * FX USD
+        ws.cell(r, 5).value = f'=C{r}*_xlfn.XLOOKUP(B{r},AM:AM,AO:AO)'
+        # G: F * FX EUR
+        ws.cell(r, 7).value = f'=F{r}*_xlfn.XLOOKUP(B{r},AM:AM,AN:AN)'
+        # H: F * FX USD
+        ws.cell(r, 8).value = f'=F{r}*_xlfn.XLOOKUP(B{r},AM:AM,AO:AO)'
+        # I: restante = C - F + venta_directa [- 4ZP para LLC]
+        if company == "LLC":
+            ws.cell(r, 9).value = (
+                f'=C{r}-F{r}+_xlfn.XLOOKUP(A{r},Q:Q,R:R,"0")'
+                f'-_xlfn.XLOOKUP(A{r},Z:Z,AA:AA,"0")'
+            )
+        else:
+            ws.cell(r, 9).value = f'=C{r}-F{r}+_xlfn.XLOOKUP(A{r},Q:Q,R:R,"0")'
+        # J: restante USD
+        ws.cell(r, 10).value = f'=I{r}*_xlfn.XLOOKUP(B{r},AM:AM,AO:AO)'
+        # K: fecha_inicio
+        ws.cell(r, 11).value = f'=_xlfn.XLOOKUP(A{r},AF:AF,AI:AI)'
+        # L: fecha - 30
+        ws.cell(r, 12).value = f'=K{r}-30'
+        # M: mes
+        ws.cell(r, 13).value = f'=MONTH(L{r})'
+        # N: año
+        ws.cell(r, 14).value = f'=YEAR(L{r})'
+
+    # ── Q-U: venta directa pivot ──
+    vd_folios = sorted(venta_directa.keys())
+    for i, folio in enumerate(vd_folios):
+        r = i + 2
+        ws.cell(r, 17).value = folio                                    # Q
+        ws.cell(r, 18).value = round(venta_directa[folio], 2)           # R
+        # S: moneda via XLOOKUP desde W-X
+        ws.cell(r, 19).value = f'=_xlfn.XLOOKUP(Q{r},W:W,X:X)'
+        # T: monto USD
+        ws.cell(r, 20).value = f'=R{r}*_xlfn.XLOOKUP(S{r},AM:AM,AO:AO)'
+        ws.cell(r, 21).value = vd_label                                 # U
+
+    # ── W-X: reserva + moneda raw ──
+    for i, (reserva, moneda) in enumerate(moneda_raw):
+        r = i + 2
+        ws.cell(r, 23).value = reserva                                  # W
+        ws.cell(r, 24).value = str(moneda).strip() if pd.notna(moneda) else "EUR"  # X
+
+    # ── Z-AD: tabla 4ZP/monedero (solo LLC) ──
+    if company == "LLC" and zp_records:
+        # Headers
+        ws.cell(1, 26).value = "reserva"
+        ws.cell(1, 27).value = "monto"
+        ws.cell(1, 28).value = "moneda"
+        ws.cell(1, 29).value = "monto USD"
+        ws.cell(1, 30).value = "forma_pago"
+        for i, (reserva, monto, moneda) in enumerate(zp_records):
+            r = i + 2
+            ws.cell(r, 26).value = reserva                              # Z
+            ws.cell(r, 27).value = round(monto, 2)                      # AA
+            ws.cell(r, 28).value = moneda                                # AB
+            ws.cell(r, 29).value = f'=AA{r}*_xlfn.XLOOKUP(AB{r},AM:AM,AO:AO)'  # AC
+            ws.cell(r, 30).value = "4ZP"                                 # AD
+
+    # ── AF-AI: reserva lookup (folio, moneda, total_cliente, fecha_inicio) ──
+    all_folios = sorted(reserva_lookup.keys())
+    for i, folio in enumerate(all_folios):
+        r = i + 2
+        info = reserva_lookup[folio]
+        ws.cell(r, 32).value = folio                                     # AF
+        ws.cell(r, 33).value = info["moneda"]                            # AG
+        ws.cell(r, 34).value = round(info["total_cliente"], 2)           # AH
+        fi = info["fecha_inicio"]
+        if fi is not None:
+            ws.cell(r, 35).value = fi                                    # AI
+            ws.cell(r, 35).number_format = 'DD/MM/YYYY'
+
+    # ── AM-AO: FX table ──
+    _write_fx_table(ws, fx, col_divisa=39, col_eur=40, col_usd=41)
+
+    return len(folios)
 
 
 # ── Alertas de pago ─────────────────────────────────────────────────────
@@ -246,14 +410,7 @@ def _load_proveedor_lookup(data_dir):
 
 
 def _build_alertas_data(pago_prov_df, prov_lookup):
-    """Identifica pagos a proveedores sin aplicar, próximos a vencer o ya excedidos.
-
-    Condiciones por fila:
-    - fecha_aplicacion == '0000-00-00' (pago no aplicado)
-    - monto_monedero == 0 (no pagado vía monedero)
-    - fecha_limite dentro de 7 días → próximos a vencer
-    - fecha_limite ya pasó → ya excedidos
-    """
+    """Identifica pagos a proveedores sin aplicar, próximos a vencer o ya excedidos."""
     today = datetime.now().date()
 
     unpaid = pago_prov_df[
@@ -321,12 +478,10 @@ def _write_alertas_sheet(wb, proximos, excedidos):
 
     cols = ["Reserva", "Vendedor", "Fecha", "Proveedor", "Nombre Proveedor",
             "Email Contacto", "Ciudad", "Fecha Límite", "Monto"]
-    # Keys matching each column in the record dict
     keys = ["reserva", "vendedor", "fecha", "proveedor_code", "proveedor_nombre",
             "proveedor_email", "proveedor_ciudad", "fecha_limite", "monto"]
 
     def write_table(start_row, title, fill, records):
-        # Título
         ws.cell(start_row, 1).value = title
         ws.cell(start_row, 1).font = title_font_white
         for c in range(1, len(cols) + 1):
@@ -334,7 +489,6 @@ def _write_alertas_sheet(wb, proximos, excedidos):
         ws.merge_cells(start_row=start_row, start_column=1,
                        end_row=start_row, end_column=len(cols))
 
-        # Headers
         hr = start_row + 1
         for c, name in enumerate(cols, 1):
             cell = ws.cell(hr, c)
@@ -361,19 +515,16 @@ def _write_alertas_sheet(wb, proximos, excedidos):
 
         return hr + 1 + len(records)
 
-    # Tabla 1: Próximos a vencer
     end_row = write_table(
         1, f"PROXIMOS A VENCER (7 dias o menos) - {len(proximos)} registros",
         orange_fill, proximos,
     )
 
-    # Tabla 2: Ya excedidos (2 filas de separación)
     write_table(
         end_row + 2, f"YA EXCEDIDOS - {len(excedidos)} registros",
         red_fill, excedidos,
     )
 
-    # Ajustar anchos de columna
     widths = {"A": 12, "B": 15, "C": 14, "D": 12, "E": 28,
               "F": 30, "G": 16, "H": 16, "I": 14}
     for col_letter, w in widths.items():
@@ -388,11 +539,7 @@ _ALERTA_EMAIL_TO = "analytics.training@gannetworld.com"
 
 
 def _send_alertas_email(proximos, entity_label):
-    """Envía un email con la tabla de pagos próximos a vencer (solo Madrid).
-
-    Requiere variables de entorno:
-      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
-    """
+    """Envía un email con la tabla de pagos próximos a vencer (solo Madrid)."""
     smtp_host = os.environ.get("SMTP_HOST", "")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
     smtp_user = os.environ.get("SMTP_USER", "")
@@ -405,7 +552,6 @@ def _send_alertas_email(proximos, entity_label):
 
     today_str = datetime.now().strftime("%d/%m/%Y")
 
-    # Construir tabla HTML
     rows_html = ""
     for rec in proximos:
         fl = rec["fecha_limite"]
@@ -467,21 +613,25 @@ def _get_fx_usd(moneda, fx):
     return FALLBACK_FX.get(moneda, {}).get("USD", 1)
 
 
-def _build_flags_data(ap_folios, ar_folios, ap_pivot1, ap_pivot2,
-                      ar_pivot1, ar_pivot2, reserva_lookup, fx):
-    """Detecta anomalías: proveedores pagados de más y clientes pagados de menos.
+def _build_flags_data(ap_ya_pagado, ar_ya_pagado, ap_venta_directa, ar_venta_directa,
+                      reserva_lookup, fx, zp_records=None):
+    """Detecta anomalías usando la misma lógica que las fórmulas del template.
 
-    AP: restante_usd < 0 → proveedor pagado de más (se pagó más de lo comprometido)
-    AR: restante_usd < 0 → cliente pagado de menos (cobró menos de lo que debe)
-
-    Returns (ap_flags, ar_flags): listas de dicts.
+    AP restante = total_proveedor - ya_pagado → si < 0, pagado de más
+    AR restante = total_cliente - ya_cobrado → si < 0, cobrado de más
     """
+    # Build 4ZP lookup
+    zp_by_folio = {}
+    if zp_records:
+        for reserva, monto, moneda in zp_records:
+            zp_by_folio[reserva] = zp_by_folio.get(reserva, 0) + monto
+
     ap_flags = []
-    for folio in ap_folios:
-        total = ap_pivot1.get(folio, 0)
-        pagado = ap_pivot2.get(folio, 0)
-        restante = total - pagado
+    for folio in ap_ya_pagado:
         info = reserva_lookup.get(folio, {})
+        total = info.get("total_proveedor", 0)
+        pagado = ap_ya_pagado[folio]
+        restante = total - pagado
         moneda = info.get("moneda", "EUR")
         fx_usd = _get_fx_usd(moneda, fx)
         restante_usd = round(restante * fx_usd, 2)
@@ -496,11 +646,12 @@ def _build_flags_data(ap_folios, ar_folios, ap_pivot1, ap_pivot2,
             })
 
     ar_flags = []
-    for folio in ar_folios:
-        total = ar_pivot1.get(folio, 0)
-        cobrado = ar_pivot2.get(folio, 0)
-        restante = total - cobrado
+    for folio in ar_ya_pagado:
         info = reserva_lookup.get(folio, {})
+        total = info.get("total_cliente", 0)
+        cobrado = ar_ya_pagado[folio]
+        zp_monto = zp_by_folio.get(folio, 0)
+        restante = total - cobrado - zp_monto
         moneda = info.get("moneda", "EUR")
         fx_usd = _get_fx_usd(moneda, fx)
         restante_usd = round(restante * fx_usd, 2)
@@ -520,7 +671,7 @@ def _build_flags_data(ap_folios, ar_folios, ap_pivot1, ap_pivot2,
 
 
 def _write_flags_sheet(wb, ap_flags, ar_flags):
-    """Crea la hoja Flags con dos tablas: proveedores pagados de más y clientes pagados de menos."""
+    """Crea la hoja Flags con dos tablas."""
     ws = wb.create_sheet("Flags")
 
     title_font = Font(bold=True, size=13, color="FFFFFF")
@@ -540,7 +691,6 @@ def _write_flags_sheet(wb, ap_flags, ar_flags):
     keys = ["folio", "moneda", "total", "pagado", "restante", "restante_usd"]
 
     def write_table(start_row, title, fill, cols, records):
-        # Título
         ws.cell(start_row, 1).value = title
         ws.cell(start_row, 1).font = title_font
         for c in range(1, len(cols) + 1):
@@ -548,7 +698,6 @@ def _write_flags_sheet(wb, ap_flags, ar_flags):
         ws.merge_cells(start_row=start_row, start_column=1,
                        end_row=start_row, end_column=len(cols))
 
-        # Headers
         hr = start_row + 1
         for c, name in enumerate(cols, 1):
             cell = ws.cell(hr, c)
@@ -573,19 +722,16 @@ def _write_flags_sheet(wb, ap_flags, ar_flags):
 
         return hr + 1 + len(records)
 
-    # Tabla 1: Proveedores pagados de más (AP restante < 0)
     end_row = write_table(
         1, f"PROVEEDORES PAGADOS DE MAS - {len(ap_flags)} registros",
         red_fill, ap_cols, ap_flags,
     )
 
-    # Tabla 2: Clientes pagados de menos (AR restante < 0)
     write_table(
         end_row + 2, f"CLIENTES PAGADO DE MENOS - {len(ar_flags)} registros",
         orange_fill, ar_cols, ar_flags,
     )
 
-    # Anchos de columna
     widths = {"A": 12, "B": 10, "C": 20, "D": 16, "E": 14, "F": 16}
     for col_letter, w in widths.items():
         ws.column_dimensions[col_letter].width = w
@@ -616,36 +762,14 @@ def _force_pivot_refresh(wb):
             if cid in seen:
                 continue
             seen.add(cid)
-
             cache.refreshOnLoad = True
-            cache.recordCount = 0
-
-            try:
-                if cache.records is not None:
-                    cache.records.r = []
-            except (AttributeError, TypeError):
-                pass
 
 
 # ── Función principal ────────────────────────────────────────────────────
 
 def generate_ap_ar_report(data_dir, output_dir, fx, company, entity_label,
                           year=None, month=None):
-    """
-    Genera el Reporte AP & AR para una entidad.
-
-    Args:
-        data_dir: Directorio de CSVs (data/espana o data/mexico).
-        output_dir: Directorio de salida.
-        fx: Dict de tipos de cambio {currency: {"EUR": rate, "USD": rate}}.
-        company: "SL" o "LLC".
-        entity_label: "Madrid" o "Mexico" (para el nombre del archivo).
-        year: Año del reporte (default: año actual).
-        month: Mes del reporte (default: mes actual).
-
-    Returns:
-        Ruta del archivo generado o None si falla.
-    """
+    """Genera el Reporte AP & AR para una entidad."""
     today = datetime.now()
     year = year or today.year
     month = month or today.month
@@ -657,8 +781,9 @@ def generate_ap_ar_report(data_dir, output_dir, fx, company, entity_label,
         return None
 
     vd_codes = VENTA_DIRECTA.get(company, set())
+    vd_label = next(iter(vd_codes)) if len(vd_codes) == 1 else ",".join(sorted(vd_codes))
     print(f"  Entidad: {entity_label} ({company})")
-    print(f"  Códigos venta directa excluidos: {vd_codes}")
+    print(f"  Códigos venta directa: {vd_codes}")
 
     # 1. Cargar reserva (filtrada, no canceladas)
     reserva_df = load_reserva(data_dir)
@@ -671,21 +796,43 @@ def generate_ap_ar_report(data_dir, output_dir, fx, company, entity_label,
     prov_lookup = _load_proveedor_lookup(data_dir)
     print(f"  Proveedores cargados: {len(prov_lookup)}")
 
-    # 3. Construir pivots AP
-    ap_pivot1, ap_pivot2 = _build_ap_pivots(pago_prov_df, vd_codes)
-    ap_folios = sorted(ap_pivot1.keys())
-    print(f"  AP: {len(ap_folios)} reservas con pagos a proveedores")
+    # 3. AP: ya pagado (todos los aplicados, sin excluir VD)
+    ap_ya_pagado = _build_ya_pagado(pago_prov_df, "fecha_aplicacion")
+    print(f"  AP ya pagado: {len(ap_ya_pagado)} reservas")
 
-    # 4. Construir pivots AR
-    ar_pivot1, ar_pivot2 = _build_ar_pivots(pago_cli_df, vd_codes)
-    ar_folios = sorted(ar_pivot1.keys())
-    print(f"  AR: {len(ar_folios)} reservas con pagos de clientes")
+    # 4. AP: venta directa (solo VD, monto_pagado)
+    ap_venta_directa = _build_venta_directa(
+        pago_prov_df, vd_codes, "fecha_aplicacion", "monto_pagado"
+    )
+    print(f"  AP venta directa: {len(ap_venta_directa)} reservas")
 
-    # 5. Alertas de pago
+    # 5. AP: moneda raw
+    ap_moneda_raw = _build_moneda_raw(pago_prov_df, "fecha_aplicacion")
+
+    # 6. AR: ya cobrado (todos los aplicados, sin excluir VD)
+    ar_ya_pagado = _build_ya_pagado(pago_cli_df, "fecha_proceso")
+    print(f"  AR ya cobrado: {len(ar_ya_pagado)} reservas")
+
+    # 7. AR: venta directa (solo VD, monto)
+    ar_venta_directa = _build_venta_directa(
+        pago_cli_df, vd_codes, "fecha_proceso", "monto"
+    )
+    print(f"  AR venta directa: {len(ar_venta_directa)} reservas")
+
+    # 8. AR: moneda raw
+    ar_moneda_raw = _build_moneda_raw(pago_cli_df, "fecha_proceso")
+
+    # 9. AR: 4ZP/monedero (solo LLC)
+    zp_records = []
+    if company == "LLC":
+        zp_records = _build_4zp_records(pago_cli_df)
+        print(f"  AR 4ZP/monedero: {len(zp_records)} registros")
+
+    # 10. Alertas de pago
     proximos, excedidos = _build_alertas_data(pago_prov_df, prov_lookup)
     print(f"  Alertas: {len(proximos)} próximos a vencer, {len(excedidos)} ya excedidos")
 
-    # 6. Copiar template y abrir
+    # 11. Copiar template y abrir
     filename = f"Report_AP_&_AR_{entity_label}_{month_name}_{year}.xlsx"
     filepath = os.path.join(output_dir, filename)
     os.makedirs(output_dir, exist_ok=True)
@@ -693,45 +840,49 @@ def generate_ap_ar_report(data_dir, output_dir, fx, company, entity_label,
 
     wb = load_workbook(filepath)
 
-    # 7. Limpiar hojas innecesarias
+    # 12. Limpiar hojas innecesarias
     _cleanup_sheets(wb)
     print(f"  Hojas: {wb.sheetnames}")
 
-    # 8. Escribir Data AP
-    ws_ap = wb["Data AP"]
-    _write_data_sheet(ws_ap, ap_folios, reserva_lookup, ap_pivot1, ap_pivot2, fx)
-    print(f"  Data AP: {len(ap_folios)} filas escritas")
+    # 13. Escribir AP DATA
+    ws_ap = wb["AP DATA"]
+    n_ap = _write_ap_data(ws_ap, ap_ya_pagado, ap_venta_directa,
+                          ap_moneda_raw, reserva_lookup, fx, vd_label)
+    print(f"  AP DATA: {n_ap} filas escritas")
 
-    # 9. Escribir Data AR
-    ws_ar = wb["Data AR"]
-    _write_data_sheet(ws_ar, ar_folios, reserva_lookup, ar_pivot1, ar_pivot2, fx)
-    print(f"  Data AR: {len(ar_folios)} filas escritas")
+    # 14. Escribir AR DATA
+    ws_ar = wb["AR DATA"]
+    n_ar = _write_ar_data(ws_ar, ar_ya_pagado, ar_venta_directa,
+                          ar_moneda_raw, reserva_lookup, zp_records,
+                          fx, company, vd_label)
+    print(f"  AR DATA: {n_ar} filas escritas")
 
-    # 10. Alertas Pago
+    # 15. Alertas Pago
     n_prox, n_exc = _write_alertas_sheet(wb, proximos, excedidos)
     print(f"  Alertas Pago: {n_prox} próximos, {n_exc} excedidos")
 
-    # 10b. Flags (anomalías)
+    # 16. Flags (anomalías)
     ap_flags, ar_flags = _build_flags_data(
-        ap_folios, ar_folios, ap_pivot1, ap_pivot2,
-        ar_pivot1, ar_pivot2, reserva_lookup, fx,
+        ap_ya_pagado, ar_ya_pagado,
+        ap_venta_directa, ar_venta_directa,
+        reserva_lookup, fx, zp_records,
     )
     n_ap_flags, n_ar_flags = _write_flags_sheet(wb, ap_flags, ar_flags)
     print(f"  Flags: {n_ap_flags} proveedores pagados de más, {n_ar_flags} clientes pagados de menos")
 
-    # 11. FX Rates (tasas diarias del mes, misma hoja que el Weekly)
+    # 17. FX Rates (tasas diarias del mes)
     month_label, n_days = write_fx_sheet(wb)
     print(f"  FX Rates: {n_days} días de {month_label}")
 
-    # 12. Force refresh (pivots + fórmulas)
+    # 18. Force refresh (pivots + fórmulas)
     _force_pivot_refresh(wb)
     print(f"  Force refresh configurado")
 
-    # 13. Guardar
+    # 19. Guardar
     wb.save(filepath)
     wb.close()
 
-    # 14. Email de alertas (solo Madrid/SL, solo si hay próximos)
+    # 20. Email de alertas (solo Madrid/SL, solo si hay próximos)
     if company == "SL" and proximos:
         _send_alertas_email(proximos, entity_label)
 
