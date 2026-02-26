@@ -1,7 +1,7 @@
 name: Weekly Report
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 5 * * 1'
   workflow_dispatch:
     inputs:
       week:
@@ -50,10 +50,10 @@ jobs:
           echo "Bookings por entidad eliminados. Solo se sube el combinado."
           ls -la output/
 
-      - name: Upload Weekly Artifact
+      - name: Upload Weekly Report
         uses: actions/upload-artifact@v4
         with:
-          name: weekly-report
+          name: Weekly Report
           path: output/
           retention-days: 30
 
