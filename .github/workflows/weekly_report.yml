@@ -41,19 +41,59 @@ jobs:
 
       - name: Generate AP & AR Report
         run: |
-          echo "▶ Generando reporte AP & AR"
           python main.py --ap-ar
 
-      - name: Remove entity bookings (only upload combined)
+      - name: Generate Comisiones
         run: |
+          python main.py --comisiones
+
+      - name: Organizar carpetas output
+        run: |
+          mkdir -p output/Weekly
+          mkdir -p output/Bookings
+          mkdir -p output/AP-AR
+          mkdir -p output/Comisiones
+
+          find output -maxdepth 1 -name "Week_*.xlsx" -exec mv {} output/Weekly/ \;
+          find output -maxdepth 1 -name "Bookings_*.xlsx" -exec mv {} output/Bookings/ \;
+          find output -maxdepth 1 -name "AP_AR_*.xlsx" -exec mv {} output/AP-AR/ \;
+          find output -maxdepth 1 -name "Comisiones_*.xlsx" -exec mv {} output/Comisiones/ \;
+
           rm -rf output/espana output/mexico
-          echo "Bookings por entidad eliminados. Solo se sube el combinado."
           ls -la output/
 
-      - name: Upload Weekly Report
+      - name: Upload Weekly
         uses: actions/upload-artifact@v4
         with:
-          name: Weekly Report
-          path: output/
+          name: Weekly
+          path: output/Weekly/
+          retention-days: 30
+
+      - name: Upload Bookings
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bookings
+          path: output/Bookings/
+          retention-days: 30
+
+      - name: Upload AP-AR
+        uses: actions/upload-artifact@v4
+        with:
+          name: AP-AR
+          path: output/AP-AR/
+          retention-days: 30
+
+      - name: Upload Dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dashboard
+          path: output/Dashboard/
+          retention-days: 30
+
+      - name: Upload Comisiones
+        uses: actions/upload-artifact@v4
+        with:
+          name: Comisiones
+          path: output/Comisiones/
           retention-days: 30
 
