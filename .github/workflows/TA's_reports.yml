@@ -1,45 +1,55 @@
 name: Monthly TA Reports
 on:
   schedule:
-    - cron: '0 5 7 * *'
+    - cron: '0 5 * * 1' # (mensual, primer lunes de cada mes)
   workflow_dispatch:
+    inputs:
+      entity:
+        description: 'Entidad (espana, mexico, all)'
+        required: false
 
 jobs:
-  monthly-ta:
+  monthly:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if first Monday of month
+        id: check
+        run: |
+          DAY=$(TZ='Europe/Madrid' date +%d)
+          [ "$DAY" -le 7 ] && echo "run=true" >> $GITHUB_OUTPUT || echo "run=false" >> $GITHUB_OUTPUT
+
       - name: Checkout
+        if: steps.check.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Python
+        if: steps.check.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
+        if: steps.check.outputs.run == 'true'
         run: pip install -r requirements.txt
 
-      - name: Generate Individual TA Reports
-        run: |
-          echo "▶ Generando reportes individuales por TA"
-          python main.py --individual
-
       - name: Generate TA Monthly Report
+        if: steps.check.outputs.run == 'true'
         run: |
-          echo "▶ Generando reporte mensual consolidado TAs"
-          python main.py --ta-monthly
+          ENTITY_ARG=""
+          [ -n "${{ github.event.inputs.entity }}" ] && ENTITY_ARG="--entity ${{ github.event.inputs.entity }}"
+          python main.py --ta-monthly --individual $ENTITY_ARG
 
-      - name: Upload Individual TA Reports
+      - name: Remove entity bookings
+        if: steps.check.outputs.run == 'true'
+        run: |
+          rm -rf output/espana output/mexico
+          ls -la output/
+
+      - name: Upload Monthly Artifact
+        if: steps.check.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Individual TA Reports
-          path: output/individual/
-          retention-days: 90
-
-      - name: Upload TA Monthly Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: TA Monthly Report
-          path: output/ta-monthly/
-          retention-days: 90
+          name: monthly-ta-reports
+          path: output/
+          retention-days: 30
 
